@@ -12,7 +12,7 @@ export interface TokenHolder {
 export interface TokenInfo {
   name: string;
   symbol: string;
-  decimals: string;
+  decimals: number;
   total_supply: string;
 }
 

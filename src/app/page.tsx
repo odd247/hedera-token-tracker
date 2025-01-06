@@ -50,7 +50,7 @@ export default function Home() {
           name: info.name,
           symbol: info.symbol,
           total_supply: info.total_supply,
-          decimals: info.decimals.toString() // Fix type mismatch for decimals
+          decimals: info.decimals // Removed toString() conversion
         }
       }));
 
@@ -101,7 +101,7 @@ export default function Home() {
             <h2 className="text-xl font-bold mb-2">Token Information</h2>
             <div><strong>Name:</strong> {data.info.name}</div>
             <div><strong>Symbol:</strong> {data.info.symbol}</div>
-            <div><strong>Total Supply:</strong> {formatBalance(data.info.total_supply, data.info.decimals)}</div>
+            <div><strong>Total Supply:</strong> {formatBalance(data.info.total_supply, data.info.decimals.toString())}</div>
           </div>
         )}
 
@@ -122,7 +122,7 @@ export default function Home() {
                     <tr key={holder.account} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
                       <td className="p-2">{holder.account}</td>
                       <td className="p-2 text-right font-mono">
-                        {data.info ? formatBalance(holder.balance, data.info.decimals) : holder.balance}
+                        {data.info ? formatBalance(holder.balance, data.info.decimals.toString()) : holder.balance}
                       </td>
                       <td className="p-2 text-right">{holder.percentage.toFixed(4)}%</td>
                     </tr>
