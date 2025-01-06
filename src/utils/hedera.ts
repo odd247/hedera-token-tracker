@@ -3,16 +3,23 @@ import axios from 'axios';
 const BASE_URL = 'https://mainnet-public.mirrornode.hedera.com';
 const API_PATH = '/api/v1';
 
-interface TokenHolder {
+export interface TokenHolder {
   account: string;
   balance: string;
   percentage: number;
 }
 
-interface TokenHoldersResponse {
+export interface TokenInfo {
+  name: string;
+  symbol: string;
+  decimals: string;
+  total_supply: string;
+}
+
+export interface TokenHoldersResponse {
   holders: TokenHolder[];
   stats: {
-    totalAccounts: number | string;
+    totalAccounts: string;
     accountsAboveOne: number;
   };
 }
@@ -34,7 +41,7 @@ function formatTokenId(tokenId: string): string {
   return tokenId;
 }
 
-export async function getTokenInfo(tokenId: string) {
+export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
     const url = `${BASE_URL}${API_PATH}/tokens/${formattedTokenId}`;
