@@ -19,13 +19,13 @@ export default function Home() {
     loading: false
   });
 
-  const formatBalance = (balance: string, decimals: string) => {
+  const formatBalance = (balance: string, decimals: number) => {
     const value = BigInt(balance);
-    const divisor = BigInt(10 ** Number(decimals));
+    const divisor = BigInt(10 ** decimals);
     const integerPart = value / divisor;
     const fractionalPart = value % divisor;
     
-    let formattedFractional = fractionalPart.toString().padStart(Number(decimals), '0');
+    let formattedFractional = fractionalPart.toString().padStart(decimals, '0');
     // Remove trailing zeros
     formattedFractional = formattedFractional.replace(/0+$/, '');
     
@@ -44,13 +44,14 @@ export default function Home() {
 
     try {
       const info = await getTokenInfo(tokenId);
+      console.log('Received token info:', info);
       setData(prev => ({
         ...prev,
         info: {
           name: info.name,
           symbol: info.symbol,
           total_supply: info.total_supply,
-          decimals: info.decimals // Removed toString() conversion
+          decimals: info.decimals
         }
       }));
 
@@ -101,7 +102,7 @@ export default function Home() {
             <h2 className="text-xl font-bold mb-2">Token Information</h2>
             <div><strong>Name:</strong> {data.info.name}</div>
             <div><strong>Symbol:</strong> {data.info.symbol}</div>
-            <div><strong>Total Supply:</strong> {formatBalance(data.info.total_supply, data.info.decimals.toString())}</div>
+            <div><strong>Total Supply:</strong> {formatBalance(data.info.total_supply, data.info.decimals)}</div>
           </div>
         )}
 
@@ -122,7 +123,7 @@ export default function Home() {
                     <tr key={holder.account} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
                       <td className="p-2">{holder.account}</td>
                       <td className="p-2 text-right font-mono">
-                        {data.info ? formatBalance(holder.balance, data.info.decimals.toString()) : holder.balance}
+                        {data.info ? formatBalance(holder.balance, data.info.decimals) : holder.balance}
                       </td>
                       <td className="p-2 text-right">{holder.percentage.toFixed(4)}%</td>
                     </tr>

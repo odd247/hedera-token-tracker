@@ -44,11 +44,23 @@ function formatTokenId(tokenId: string): string {
 export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
-    const url = `${BASE_URL}${API_PATH}/tokens/${formattedTokenId}`;
+    const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}`;
     console.log('Fetching token info from:', url);
     const response = await axios.get(url);
-    console.log('Token Info Response:', response.data);
-    return response.data;
+    
+    if (!response.data) {
+      throw new Error(`Failed to fetch token info: ${response.status} ${response.statusText}`);
+    }
+
+    console.log('Token info response:', response.data);
+
+    // Convert decimals to number explicitly
+    return {
+      name: response.data.name,
+      symbol: response.data.symbol,
+      total_supply: response.data.total_supply,
+      decimals: Number(response.data.decimals)
+    };
   } catch (error: any) {
     console.error('Error fetching token info:', {
       status: error.response?.status,
