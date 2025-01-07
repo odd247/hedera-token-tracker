@@ -66,17 +66,32 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     console.log('Fetching from:', url);
     const response = await axios.get(url);
     
-    const holders = response.data.balances.map((balance: any) => ({
-      account: balance.account,
-      balance: balance.balance,
-      percentage: calculatePercentage(balance.balance, response.data.total_supply)
-    }));
+    if (!response.data || !response.data.balances || !Array.isArray(response.data.balances)) {
+      throw new Error('Invalid response format from Hedera API');
+    }
+
+    let totalSupply = '0';
+    try {
+      const infoResponse = await getTokenInfo(tokenId);
+      totalSupply = infoResponse.total_supply;
+    } catch (error) {
+      console.error('Error fetching total supply:', error);
+      totalSupply = '0';
+    }
+
+    const holders = response.data.balances
+      .filter((balance: any) => balance && balance.balance && typeof balance.balance === 'string')
+      .map((balance: any) => ({
+        account: balance.account,
+        balance: balance.balance,
+        percentage: calculatePercentage(balance.balance, totalSupply)
+      }));
 
     return {
       holders,
       stats: {
         totalAccounts: response.data.balances.length.toString(),
-        accountsAboveOne: holders.filter((h: any) => Number(h.balance) > 1).length
+        accountsAboveOne: holders.filter((h: TokenHolder) => BigInt(h.balance) > BigInt(1)).length
       }
     };
   } catch (error: any) {
@@ -86,12 +101,25 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
 }
 
 function calculatePercentage(balance: string, totalSupply: string): number {
-  const balanceNum = BigInt(balance);
-  const totalSupplyNum = BigInt(totalSupply);
-  
-  if (totalSupplyNum === BigInt(0)) return 0;
-  
-  return Number((balanceNum * BigInt(10000) / totalSupplyNum) / BigInt(100));
+  try {
+    if (!balance || !totalSupply || balance === '0' || totalSupply === '0') {
+      return 0;
+    }
+
+    const balanceNum = BigInt(balance);
+    const totalSupplyNum = BigInt(totalSupply);
+    
+    if (totalSupplyNum === BigInt(0)) {
+      return 0;
+    }
+    
+    // Calculate percentage with higher precision
+    const percentage = Number((balanceNum * BigInt(10000) / totalSupplyNum)) / 100;
+    return Math.min(100, Math.max(0, percentage)); // Ensure between 0 and 100
+  } catch (error) {
+    console.error('Error calculating percentage:', error);
+    return 0;
+  }
 }
 
 export async function getAccountInfo(accountId: string) {
