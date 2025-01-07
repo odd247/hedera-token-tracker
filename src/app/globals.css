@@ -33,3 +33,43 @@ input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
+
+/* Custom styles */
+.token-table {
+  border-spacing: 0;
+  border-collapse: separate;
+}
+
+.token-table td,
+.token-table th {
+  padding: 1.5rem !important;
+}
+
+.token-table tr:hover {
+  background-color: rgba(168, 85, 247, 0.05);
+}
+
+.token-rank {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, #a855f7, #ec4899);
+  color: white;
+  font-weight: bold;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(168, 85, 247, 0.2);
+}
+
+.token-header {
+  background: linear-gradient(to right, #a855f7, #ec4899);
+  padding: 1.5rem !important;
+  color: white;
+  font-weight: bold;
+}
+
+.token-cell {
+  padding: 1.5rem !important;
+  font-size: 1.125rem;
+}

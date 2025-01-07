@@ -148,30 +148,30 @@ export default function Home() {
 
         {data.holders.length > 0 && !data.loading && (
           <div className="bg-white/90 backdrop-blur border-2 border-purple-200 rounded-lg overflow-hidden shadow-lg">
-            <table className="w-full">
+            <table className="w-full token-table">
               <thead>
-                <tr className="bg-gradient-to-r from-purple-500 to-pink-500">
-                  <th className="w-24 px-6 py-4 text-left text-white font-bold">Rank</th>
-                  <th className="px-6 py-4 text-left text-white font-bold">Account</th>
-                  <th className="w-48 px-6 py-4 text-right text-white font-bold">Balance</th>
-                  <th className="w-32 px-6 py-4 text-right text-white font-bold">Share</th>
+                <tr>
+                  <th className="token-header text-left w-24">Rank</th>
+                  <th className="token-header text-left">Account</th>
+                  <th className="token-header text-right w-48">Balance</th>
+                  <th className="token-header text-right w-32">Share</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-purple-100">
+              <tbody>
                 {data.holders.map((holder, index) => (
-                  <tr key={holder.account} className="hover:bg-purple-50 transition-colors duration-150">
-                    <td className="w-24 px-6 py-4">
-                      <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg shadow-md">
+                  <tr key={holder.account}>
+                    <td className="token-cell">
+                      <div className="token-rank">
                         #{index + 1}
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-mono text-base truncate max-w-0">
+                    <td className="token-cell font-mono truncate max-w-0">
                       {holder.account}
                     </td>
-                    <td className="w-48 px-6 py-4 text-right font-bold text-purple-600 whitespace-nowrap">
+                    <td className="token-cell text-right font-bold text-purple-600 whitespace-nowrap">
                       {Number(holder.balance).toLocaleString()}
                     </td>
-                    <td className="w-32 px-6 py-4 text-right font-bold text-pink-500 whitespace-nowrap">
+                    <td className="token-cell text-right font-bold text-pink-500 whitespace-nowrap">
                       {holder.percentage.toFixed(2)}%
                     </td>
                   </tr>
