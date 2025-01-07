@@ -8,7 +8,9 @@ export const metadata: Metadata = {
   title: 'Hedera Token Tracker',
   description: 'Track Hedera tokens and their holders',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ]
   },
 }
 
@@ -22,7 +24,7 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
       <body className={inter.className}>{children}</body>
     </html>
