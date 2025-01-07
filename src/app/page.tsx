@@ -89,23 +89,23 @@ export default function Home() {
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto p-8 font-mono">
-        <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-transparent bg-clip-text">
+        <h1 className="text-4xl font-bold mb-12 text-center bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-transparent bg-clip-text">
           Hedera Token Tracker
         </h1>
         
-        <div className="flex gap-4 mb-8">
+        <div className="flex gap-4 mb-12">
           <input
             type="text"
             value={tokenId}
             onChange={(e) => setTokenId(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Enter token ID (e.g., 0.0.1234)"
-            className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/90 backdrop-blur"
+            className="flex-1 p-3 text-lg border-2 border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/90 backdrop-blur"
           />
           <button
             onClick={handleSearch}
             disabled={data.loading}
-            className={`px-6 py-2 rounded-lg font-bold text-white shadow-lg transform transition-all duration-200 ${
+            className={`px-8 py-3 rounded-lg text-lg font-bold text-white shadow-lg transform transition-all duration-200 ${
               data.loading 
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:scale-105 hover:shadow-xl active:scale-95'
@@ -135,19 +135,13 @@ export default function Home() {
         )}
 
         {data.info && !data.loading && (
-          <div className="bg-white/90 backdrop-blur border-2 border-purple-200 rounded-lg p-6 mb-8 shadow-lg">
-            <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text">
+          <div className="bg-white/90 backdrop-blur border-2 border-purple-200 rounded-lg p-8 mb-12 shadow-lg">
+            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text">
               {data.info.name} ({data.info.symbol})
             </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border-2 border-purple-100 rounded-lg p-4">
-                <p className="text-purple-600 font-bold">Total Supply</p>
-                <p className="text-2xl font-bold">{Number(data.info.total_supply).toLocaleString()}</p>
-              </div>
-              <div className="border-2 border-purple-100 rounded-lg p-4">
-                <p className="text-purple-600 font-bold">Decimals</p>
-                <p className="text-2xl font-bold">{data.info.decimals}</p>
-              </div>
+            <div className="border-2 border-purple-100 rounded-lg p-6">
+              <p className="text-purple-600 font-bold mb-2">Total Supply</p>
+              <p className="text-3xl font-bold">{Number(data.info.total_supply).toLocaleString()}</p>
             </div>
           </div>
         )}
@@ -157,27 +151,27 @@ export default function Home() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gradient-to-r from-purple-500 to-pink-500">
-                  <th className="w-24 px-4 py-3 text-left text-white font-bold">Rank</th>
-                  <th className="px-4 py-3 text-left text-white font-bold">Account</th>
-                  <th className="w-48 px-4 py-3 text-right text-white font-bold">Balance</th>
-                  <th className="w-32 px-4 py-3 text-right text-white font-bold">Share</th>
+                  <th className="w-24 px-6 py-4 text-left text-white font-bold">Rank</th>
+                  <th className="px-6 py-4 text-left text-white font-bold">Account</th>
+                  <th className="w-48 px-6 py-4 text-right text-white font-bold">Balance</th>
+                  <th className="w-32 px-6 py-4 text-right text-white font-bold">Share</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-purple-100">
                 {data.holders.map((holder, index) => (
                   <tr key={holder.account} className="hover:bg-purple-50 transition-colors duration-150">
-                    <td className="w-24 px-4 py-3">
-                      <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg shadow-md">
+                    <td className="w-24 px-6 py-4">
+                      <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg shadow-md">
                         #{index + 1}
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-mono text-sm truncate max-w-0">
+                    <td className="px-6 py-4 font-mono text-base truncate max-w-0">
                       {holder.account}
                     </td>
-                    <td className="w-48 px-4 py-3 text-right font-bold text-purple-600 whitespace-nowrap">
+                    <td className="w-48 px-6 py-4 text-right font-bold text-purple-600 whitespace-nowrap">
                       {Number(holder.balance).toLocaleString()}
                     </td>
-                    <td className="w-32 px-4 py-3 text-right font-bold text-pink-500 whitespace-nowrap">
+                    <td className="w-32 px-6 py-4 text-right font-bold text-pink-500 whitespace-nowrap">
                       {holder.percentage.toFixed(2)}%
                     </td>
                   </tr>
