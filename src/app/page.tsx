@@ -88,7 +88,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto p-4 font-mono">
+      <div className="max-w-6xl mx-auto p-8 font-mono">
         <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-transparent bg-clip-text">
           Hedera Token Tracker
         </h1>
@@ -154,20 +154,26 @@ export default function Home() {
 
         {data.holders.length > 0 && !data.loading && (
           <div className="bg-white/90 backdrop-blur border-2 border-purple-200 rounded-lg overflow-hidden shadow-lg">
-            <div className="px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500">
+            <div className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500">
               <h3 className="text-lg font-bold text-white">Top Token Holders</h3>
             </div>
             <div className="divide-y-2 divide-purple-100">
               {data.holders.map((holder, index) => (
                 <div key={holder.account} 
-                  className="px-4 py-3 hover:bg-purple-50 transition-colors duration-150 flex items-center gap-4">
-                  <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg shadow-md">
-                    #{index + 1}
+                  className="px-8 py-4 hover:bg-purple-50 transition-colors duration-150 grid grid-cols-12 gap-6 items-center">
+                  <div className="col-span-1">
+                    <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg shadow-md">
+                      #{index + 1}
+                    </div>
                   </div>
-                  <div className="flex-1 truncate">{holder.account}</div>
-                  <div className="text-right">
-                    <div className="font-bold text-purple-600">{Number(holder.balance).toLocaleString()}</div>
-                    <div className="text-sm text-pink-500 font-bold">{holder.percentage.toFixed(2)}%</div>
+                  <div className="col-span-7 font-mono text-sm truncate">
+                    {holder.account}
+                  </div>
+                  <div className="col-span-2 text-right font-bold text-purple-600">
+                    {Number(holder.balance).toLocaleString()}
+                  </div>
+                  <div className="col-span-2 text-right font-bold text-pink-500">
+                    {holder.percentage.toFixed(2)}%
                   </div>
                 </div>
               ))}
