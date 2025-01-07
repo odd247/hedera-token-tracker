@@ -175,7 +175,7 @@ export default function Home() {
                         <span className="ml-4 text-sm text-gray-500">(DaVinciGraph Lock)</span>
                       )}
                       {holder.account === '0.0.3158042' && (
-                        <span className="ml-4 text-sm text-gray-500">(DaVinciGraph Burnt)</span>
+                        <span className="ml-4 text-sm text-gray-500">(DaVinciGraph Burn)</span>
                       )}
                     </td>
                     <td className="token-balance text-right">
