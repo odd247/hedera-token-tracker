@@ -13,6 +13,7 @@ export async function GET(request: Request) {
   try {
     const formattedTokenId = formatTokenId(tokenId);
     const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances?limit=${limit}&order=desc`;
+    console.log('Fetching token holders from:', url);
     const response = await axios.get(url);
     
     const holders = response.data.balances.map((balance: any) => ({
@@ -20,6 +21,8 @@ export async function GET(request: Request) {
       balance: balance.balance,
       percentage: calculatePercentage(balance.balance, response.data.total_supply)
     }));
+
+    console.log('Successfully fetched holders:', holders.length);
 
     return NextResponse.json({
       holders,
@@ -29,9 +32,9 @@ export async function GET(request: Request) {
       }
     });
   } catch (error: any) {
-    console.error('Error fetching token holders:', error);
+    console.error('Error fetching token holders:', error.response?.data || error.message);
     return NextResponse.json(
-      { error: 'Error fetching token holders' },
+      { error: error.response?.data?.message || 'Error fetching token holders' },
       { status: error.response?.status || 500 }
     );
   }

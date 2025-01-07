@@ -12,13 +12,14 @@ export async function GET(request: Request) {
   try {
     const formattedTokenId = formatTokenId(tokenId);
     const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}`;
+    console.log('Fetching token info from:', url);
     const response = await axios.get(url);
     
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error('Error fetching token info:', error);
+    console.error('Error fetching token info:', error.response?.data || error.message);
     return NextResponse.json(
-      { error: 'Error fetching token data' },
+      { error: error.response?.data?.message || 'Error fetching token data' },
       { status: error.response?.status || 500 }
     );
   }

@@ -43,6 +43,7 @@ export default function Home() {
     setData(prev => ({ ...prev, loading: true, error: null }));
 
     try {
+      console.log('Fetching token info for:', tokenId);
       const info = await getTokenInfo(tokenId);
       console.log('Received token info:', info);
 
@@ -59,17 +60,20 @@ export default function Home() {
         }
       }));
 
+      console.log('Fetching token holders...');
       const response = await getTokenHolders(tokenId);
+      console.log('Received token holders:', response.holders.length);
+      
       setData(prev => ({
         ...prev,
         holders: response.holders,
         loading: false
       }));
-    } catch (error) {
-      console.error('Error fetching token data:', error);
+    } catch (error: any) {
+      console.error('Error in handleSearch:', error.response?.data || error);
       setData(prev => ({
         ...prev,
-        error: 'Error fetching token data. Please check the token ID and try again.',
+        error: error.response?.data?.error || 'Error fetching token data. Please check the token ID and try again.',
         loading: false
       }));
     }
