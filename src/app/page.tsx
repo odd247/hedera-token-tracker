@@ -168,6 +168,9 @@ export default function Home() {
                     </td>
                     <td className="token-account truncate max-w-0">
                       {holder.account}
+                      {holder.account === '0.0.7891970' && (
+                        <span className="ml-2 text-sm text-gray-500">(Bonding Curve)</span>
+                      )}
                     </td>
                     <td className="token-balance text-right">
                       {Number(holder.balance).toLocaleString()}
