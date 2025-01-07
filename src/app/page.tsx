@@ -87,9 +87,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen p-8 flex flex-col justify-between">
-      <div className="w-full">
-        <div className="max-w-5xl mx-auto flex-grow w-full">
+    <main>
+      <div className="content-wrapper p-8">
+        <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-medium mb-12 text-center">
             Hedera Token Balances
           </h1>
@@ -193,9 +193,9 @@ export default function Home() {
           )}
         </div>
       </div>
-      <div className="w-full text-center text-gray-500 mt-auto">
+      <footer className="w-full p-4 text-center text-gray-500">
         made by <a href="https://x.com/odd247" target="_blank" className="text-white hover:underline">odd</a>
-      </div>
+      </footer>
     </main>
   );
 }
