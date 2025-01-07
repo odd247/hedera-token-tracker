@@ -5,11 +5,6 @@ const nextConfig = {
     unoptimized: true
   },
   webpack: (config, { dev, isServer }) => {
-    // Disable eval in production
-    if (!dev) {
-      config.optimization.minimize = true;
-    }
-    
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
@@ -26,7 +21,18 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://mainnet-public.mirrornode.hedera.com; style-src 'self' 'unsafe-inline';"
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'nonce-INTERNAL_NEXT_SCRIPT' 'strict-dynamic'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob:",
+              "font-src 'self'",
+              "connect-src 'self' https://mainnet-public.mirrornode.hedera.com",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "upgrade-insecure-requests"
+            ].join('; ')
           }
         ]
       }
