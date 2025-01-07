@@ -45,13 +45,17 @@ export default function Home() {
     try {
       const info = await getTokenInfo(tokenId);
       console.log('Received token info:', info);
+
+      // Ensure decimals is a number
+      const decimalsAsNumber = typeof info.decimals === 'string' ? parseInt(info.decimals, 10) : info.decimals;
+      
       setData(prev => ({
         ...prev,
         info: {
           name: info.name,
           symbol: info.symbol,
           total_supply: info.total_supply,
-          decimals: info.decimals
+          decimals: decimalsAsNumber
         }
       }));
 

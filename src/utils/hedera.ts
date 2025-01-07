@@ -54,12 +54,16 @@ export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
 
     console.log('Token info response:', response.data);
 
-    // Convert decimals to number explicitly
+    // Ensure decimals is converted to number
+    const decimals = typeof response.data.decimals === 'string' 
+      ? parseInt(response.data.decimals, 10) 
+      : Number(response.data.decimals);
+
     return {
       name: response.data.name,
       symbol: response.data.symbol,
       total_supply: response.data.total_supply,
-      decimals: Number(response.data.decimals)
+      decimals
     };
   } catch (error: any) {
     console.error('Error fetching token info:', {
