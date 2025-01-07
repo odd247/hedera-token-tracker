@@ -43,7 +43,7 @@ function formatTokenId(tokenId: string): string {
 export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
-    const response = await axios.get(`${BASE_URL}/token/info?tokenId=${formattedTokenId}`);
+    const response = await axios.get(`/api/tokens/${formattedTokenId}/info`);
     return {
       name: response.data.name,
       symbol: response.data.symbol,
@@ -62,7 +62,7 @@ export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
 export async function getTokenHolders(tokenId: string, limit: number = 50): Promise<TokenHoldersResponse> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
-    const response = await axios.get(`${BASE_URL}/token/holders?tokenId=${formattedTokenId}&limit=${limit}`);
+    const response = await axios.get(`/api/tokens/${formattedTokenId}/holders?limit=${limit}`);
     return response.data;
   } catch (error: any) {
     console.error('Error fetching token holders:', {
@@ -75,7 +75,7 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
 
 export async function getAccountInfo(accountId: string) {
   try {
-    const response = await axios.get(`${BASE_URL}/accounts/${accountId}`);
+    const response = await axios.get(`/api/accounts/${accountId}`);
     return response.data;
   } catch (error: any) {
     console.error('Error fetching account info:', {
