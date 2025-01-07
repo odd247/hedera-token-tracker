@@ -94,12 +94,12 @@ export default function Home() {
             onChange={(e) => setTokenId(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Enter token ID (e.g., 0.0.1234)"
-            className="flex-1 p-2 border rounded"
+            className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <button
             onClick={handleSearch}
             disabled={data.loading}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors duration-200"
           >
             {data.loading ? 'Loading...' : 'Search'}
           </button>
