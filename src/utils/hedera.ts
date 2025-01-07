@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://mainnet-public.mirrornode.hedera.com';
-const API_PATH = '/api/v1';
+const BASE_URL = '/api';
 
 export interface TokenHolder {
   account: string;
@@ -44,154 +43,31 @@ function formatTokenId(tokenId: string): string {
 export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
-    const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}`;
-    console.log('Fetching token info from:', url);
-    const response = await axios.get(url);
-    
-    if (!response.data) {
-      throw new Error(`Failed to fetch token info: ${response.status} ${response.statusText}`);
-    }
-
-    console.log('Token info response:', response.data);
-
-    // Ensure decimals is converted to number
-    const decimals = typeof response.data.decimals === 'string' 
-      ? parseInt(response.data.decimals, 10) 
-      : Number(response.data.decimals);
-
+    const response = await axios.get(`${BASE_URL}/token/info?tokenId=${formattedTokenId}`);
     return {
       name: response.data.name,
       symbol: response.data.symbol,
-      total_supply: response.data.total_supply,
-      decimals
+      decimals: Number(response.data.decimals),
+      total_supply: response.data.total_supply
     };
   } catch (error: any) {
     console.error('Error fetching token info:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url
+      error,
+      response: error.response?.data
     });
-    throw new Error(
-      error.response?.data?.message || 
-      error.response?.statusText || 
-      'Error fetching token data'
-    );
+    throw error;
   }
 }
 
 export async function getTokenHolders(tokenId: string, limit: number = 50): Promise<TokenHoldersResponse> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
-    const tokenInfo = await getTokenInfo(formattedTokenId);
-    console.log('Token Info:', {
-      name: tokenInfo.name,
-      symbol: tokenInfo.symbol,
-      decimals: tokenInfo.decimals,
-      total_supply: tokenInfo.total_supply
-    });
-    
-    // Use a Map to ensure unique accounts
-    const holdersMap = new Map<string, any>();
-    let hasMore = true;
-    
-    // Get first page with maximum limit
-    const fetchPage = async (nextLink: string | null = null) => {
-      const url = nextLink ? `${BASE_URL}${nextLink}` : `${BASE_URL}${API_PATH}/tokens/${formattedTokenId}/balances?limit=100`;
-      console.log('Fetching balances from:', url);
-      return axios.get(url);
-    };
-
-    // Fetch first page
-    const firstResponse = await fetchPage();
-    let holders = firstResponse.data.balances.filter((h: any) => h.balance !== '0' && BigInt(h.balance) > 0);
-    holders.forEach(h => holdersMap.set(h.account, h));
-    
-    hasMore = !!firstResponse.data.links?.next;
-    let nextLink = firstResponse.data.links?.next;
-
-    // Fetch remaining pages
-    let pageCount = 1;
-    const maxPages = 200; // Increased to 200 pages to get more holders
-    
-    while (hasMore && pageCount < maxPages && nextLink) {
-      try {
-        console.log(`Fetching page ${pageCount + 1} using next link`);
-        const response = await fetchPage(nextLink);
-        holders = response.data.balances.filter((h: any) => h.balance !== '0' && BigInt(h.balance) > 0);
-        
-        if (holders.length > 0) {
-          holders.forEach(h => holdersMap.set(h.account, h));
-          console.log(`Found ${holders.length} holders on page ${pageCount + 1} (total unique: ${holdersMap.size})`);
-        } else {
-          hasMore = false;
-        }
-        
-        nextLink = response.data.links?.next;
-        hasMore = hasMore && !!nextLink;
-        pageCount++;
-        
-        // Add a small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error) {
-        console.error(`Error fetching page ${pageCount + 1}:`, error);
-        hasMore = false;
-      }
-    }
-
-    // Convert Map back to array
-    const allHolders = Array.from(holdersMap.values());
-    console.log(`Total unique holders fetched: ${allHolders.length} from ${pageCount} pages`);
-
-    const decimals = Number(tokenInfo.decimals);
-    const oneToken = BigInt(10 ** decimals);
-    const totalSupplyBigInt = BigInt(tokenInfo.total_supply);
-
-    // Sort holders by numeric balance value
-    console.log('Sorting holders...');
-    const sortedHolders = allHolders
-      .map(holder => ({
-        ...holder,
-        numericBalance: BigInt(holder.balance)
-      }))
-      .sort((a, b) => {
-        return a.numericBalance > b.numericBalance ? -1 : 
-               a.numericBalance < b.numericBalance ? 1 : 0;
-      })
-      .slice(0, limit);
-
-    const formattedHolders = sortedHolders.map(holder => {
-      const percentage = Number((holder.numericBalance * BigInt(1000000) / totalSupplyBigInt)) / 10000;
-      
-      return {
-        account: holder.account,
-        balance: holder.balance,
-        percentage
-      };
-    });
-
-    // Log top 20 holders with formatted balances for verification
-    console.log('Top holders:', formattedHolders.slice(0, 20).map(h => ({
-      account: h.account,
-      balance: formatBalance(h.balance, decimals),
-      percentage: h.percentage.toFixed(4) + '%'
-    })));
-
-    const stats = {
-      totalAccounts: allHolders.length + (hasMore ? '+' : ''),
-      accountsAboveOne: allHolders.filter(holder => BigInt(holder.balance) >= oneToken).length
-    };
-
-    return {
-      holders: formattedHolders,
-      stats
-    };
+    const response = await axios.get(`${BASE_URL}/token/holders?tokenId=${formattedTokenId}&limit=${limit}`);
+    return response.data;
   } catch (error: any) {
     console.error('Error fetching token holders:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url
+      error,
+      response: error.response?.data
     });
     throw error;
   }
@@ -199,7 +75,7 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
 
 export async function getAccountInfo(accountId: string) {
   try {
-    const response = await axios.get(`${BASE_URL}${API_PATH}/accounts/${accountId}`);
+    const response = await axios.get(`${BASE_URL}/accounts/${accountId}`);
     return response.data;
   } catch (error: any) {
     console.error('Error fetching account info:', {
