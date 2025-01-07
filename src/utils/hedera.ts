@@ -126,16 +126,6 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
           isValidBalance: typeof balance.balance === 'string' || typeof balance.balance === 'number',
           isValidDecimals: typeof balance.decimals === 'number'
         });
-      } else {
-        // Convert balance to actual value using decimals
-        const rawBalance = Number(balance.balance);
-        const adjustedBalance = rawBalance / Math.pow(10, balance.decimals);
-        console.log('%c[Valid Balance]', 'color: #4CAF50; font-weight: bold;', {
-          account: balance.account,
-          rawBalance,
-          decimals: balance.decimals,
-          adjustedBalance
-        });
       }
       
       return isValid;
@@ -144,38 +134,43 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
     console.log('%c[Valid Balances] Count:', 'color: #2196F3; font-weight: bold;', validBalances.length);
 
     console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
-    const holders = validBalances.map((balance): TokenHolder => {
-      // Convert balance to actual value using decimals
-      const rawBalance = Number(balance.balance);
-      const adjustedBalance = rawBalance / Math.pow(10, balance.decimals);
-      const balanceStr = adjustedBalance.toString();
-      
-      const totalSupplyNum = Number(totalSupply);
-      const percentage = totalSupplyNum > 0 ? (adjustedBalance * 100) / totalSupplyNum : 0;
-      
-      console.log('%c[Holder]', 'color: #2196F3;', {
-        account: balance.account,
-        rawBalance,
-        adjustedBalance,
-        totalSupply,
-        percentage: percentage + '%'
-      });
-      
-      return {
-        account: balance.account,
-        balance: balanceStr,
-        percentage
-      };
-    });
+    const holders = validBalances
+      .map((balance): TokenHolder => {
+        // Convert balance to actual value using decimals
+        const rawBalance = Number(balance.balance);
+        const adjustedBalance = rawBalance / Math.pow(10, balance.decimals);
+        const balanceStr = adjustedBalance.toString();
+        
+        const totalSupplyNum = Number(totalSupply);
+        const percentage = totalSupplyNum > 0 ? (adjustedBalance * 100) / totalSupplyNum : 0;
+        
+        return {
+          account: balance.account,
+          balance: balanceStr,
+          percentage
+        };
+      })
+      // Filter out balances less than 1
+      .filter(holder => Number(holder.balance) >= 1)
+      // Sort by balance in descending order
+      .sort((a, b) => Number(b.balance) - Number(a.balance))
+      // Take top 50 holders
+      .slice(0, 50);
 
-    console.log('%c[Processing] Sorting holders...', 'color: #2196F3; font-weight: bold;');
-    holders.sort((a, b) => Number(b.balance) - Number(a.balance));
+    console.log('%c[Final Holders] Count:', 'color: #2196F3; font-weight: bold;', holders.length);
+    holders.forEach(holder => {
+      console.log('%c[Holder]', 'color: #2196F3;', {
+        account: holder.account,
+        balance: holder.balance,
+        percentage: holder.percentage + '%'
+      });
+    });
 
     const result: TokenHoldersResponse = {
       holders,
       stats: {
         totalAccounts: validBalances.length.toString(),
-        accountsAboveOne: holders.filter(h => Number(h.balance) > 1).length
+        accountsAboveOne: holders.length
       }
     };
 
