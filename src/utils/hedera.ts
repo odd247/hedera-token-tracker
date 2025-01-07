@@ -124,7 +124,7 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     });
 
     console.log('%c[Processing] Sorting holders...', 'color: #2196F3; font-weight: bold;');
-    holders.sort((a, b) => Number(b.balance) - Number(a.balance));
+    holders.sort((a: TokenHolder, b: TokenHolder) => Number(b.balance) - Number(a.balance));
 
     const result = {
       holders,
