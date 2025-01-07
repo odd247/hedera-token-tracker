@@ -36,24 +36,26 @@ body {
 }
 
 .token-table th {
-  padding: 0.5rem;
+  padding: 0.5rem 0.25rem;
   text-align: left;
   font-weight: 500;
   color: #9ca3af;
   border-bottom: 2px solid #374151;
 }
 
-.token-table th:first-child {
+.token-table th:first-child,
+.token-table td:first-child {
   padding-left: 1rem;
 }
 
 .token-table td {
-  padding: 0.5rem;
+  padding: 0.5rem 0.25rem;
   border-bottom: 1px solid #1f2937;
 }
 
-.token-table td:first-child {
-  padding-left: 1rem;
+.token-table td:last-child,
+.token-table th:last-child {
+  padding-right: 1rem;
 }
 
 .token-table tr:hover td {

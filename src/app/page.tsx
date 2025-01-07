@@ -169,13 +169,13 @@ export default function Home() {
                     <td className="token-account truncate max-w-0">
                       {holder.account}
                       {holder.account === '0.0.7891970' && (
-                        <span className="ml-4 text-sm text-gray-500">(Bonding Curve)</span>
+                        <span className="ml-8 text-sm text-gray-500">(Bonding Curve)</span>
                       )}
                       {holder.account === '0.0.2997798' && (
-                        <span className="ml-4 text-sm text-gray-500">(DaVinciGraph Lock)</span>
+                        <span className="ml-8 text-sm text-gray-500">(DaVinciGraph Lock)</span>
                       )}
                       {holder.account === '0.0.3158042' && (
-                        <span className="ml-4 text-sm text-gray-500">(DaVinciGraph Burn)</span>
+                        <span className="ml-8 text-sm text-gray-500">(DaVinciGraph Burn)</span>
                       )}
                     </td>
                     <td className="token-balance text-right">
