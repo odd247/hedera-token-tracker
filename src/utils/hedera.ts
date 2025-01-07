@@ -44,8 +44,9 @@ export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
     const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}`;
-    console.log('Fetching from:', url);
+    console.log('%c[API Call] Fetching token info from:', 'color: #4CAF50; font-weight: bold;', url);
     const response = await axios.get(url);
+    console.log('%c[Token Info] Response:', 'color: #4CAF50; font-weight: bold;', response.data);
     
     return {
       name: response.data.name,
@@ -54,23 +55,28 @@ export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
       total_supply: response.data.total_supply
     };
   } catch (error: any) {
-    console.error('Error fetching token info:', error.response?.data || error.message);
+    console.error('%c[Error] Failed to fetch token info:', 'color: #f44336; font-weight: bold;', error.response?.data || error.message);
     throw error;
   }
 }
 
 export async function getTokenHolders(tokenId: string, limit: number = 50): Promise<TokenHoldersResponse> {
   try {
+    console.log('%c[Token Holders] Starting fetch...', 'color: #2196F3; font-weight: bold;');
+    
     const formattedTokenId = formatTokenId(tokenId);
     const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances?limit=${limit}&order=desc`;
-    console.log('Fetching from:', url);
-    const response = await axios.get(url);
+    console.log('%c[API Call] Fetching token holders from:', 'color: #2196F3; font-weight: bold;', url);
     
-    // Debug response
-    console.log('Raw token holders response:', JSON.stringify(response.data, null, 2));
+    const response = await axios.get(url);
+    console.log('%c[API Response] Raw data:', 'color: #2196F3; font-weight: bold;', {
+      status: response.status,
+      headers: response.headers,
+      data: response.data
+    });
 
     if (!response.data || !response.data.balances) {
-      console.error('Invalid response format:', response.data);
+      console.error('%c[Error] Invalid response format:', 'color: #f44336; font-weight: bold;', response.data);
       throw new Error('Invalid response format from Hedera API');
     }
 
@@ -78,12 +84,13 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     try {
       const infoResponse = await getTokenInfo(tokenId);
       totalSupply = infoResponse.total_supply;
-      console.log('Total supply:', totalSupply);
+      console.log('%c[Total Supply]', 'color: #2196F3; font-weight: bold;', totalSupply);
     } catch (error) {
-      console.error('Error fetching total supply:', error);
+      console.error('%c[Error] Failed to fetch total supply:', 'color: #f44336; font-weight: bold;', error);
       totalSupply = '0';
     }
 
+    console.log('%c[Processing] Filtering balances...', 'color: #2196F3; font-weight: bold;');
     const validBalances = response.data.balances.filter((balance: any) => {
       const isValid = balance && 
         typeof balance.account === 'string' && 
@@ -91,17 +98,22 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
         BigInt(balance.balance) > BigInt(0);
       
       if (!isValid) {
-        console.log('Invalid balance entry:', balance);
+        console.log('%c[Invalid Balance]', 'color: #FFC107; font-weight: bold;', balance);
       }
       
       return isValid;
     });
 
-    console.log('Valid balances count:', validBalances.length);
+    console.log('%c[Valid Balances] Count:', 'color: #2196F3; font-weight: bold;', validBalances.length);
 
+    console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
     const holders = validBalances.map((balance: any) => {
       const percentage = calculatePercentage(balance.balance, totalSupply);
-      console.log(`Holder ${balance.account}: Balance ${balance.balance}, Percentage ${percentage}%`);
+      console.log('%c[Holder]', 'color: #2196F3;', {
+        account: balance.account,
+        balance: balance.balance,
+        percentage: percentage + '%'
+      });
       
       return {
         account: balance.account,
@@ -110,7 +122,7 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
       };
     });
 
-    // Sort holders by balance in descending order
+    console.log('%c[Processing] Sorting holders...', 'color: #2196F3; font-weight: bold;');
     holders.sort((a, b) => {
       const balanceA = BigInt(a.balance);
       const balanceB = BigInt(b.balance);
@@ -125,11 +137,11 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
       }
     };
 
-    console.log('Processed response:', JSON.stringify(response, null, 2));
+    console.log('%c[Final Result]', 'color: #4CAF50; font-weight: bold;', response);
     return response;
 
   } catch (error: any) {
-    console.error('Error fetching token holders:', error.response?.data || error.message);
+    console.error('%c[Error] Failed to fetch token holders:', 'color: #f44336; font-weight: bold;', error.response?.data || error.message);
     throw error;
   }
 }
@@ -151,7 +163,7 @@ function calculatePercentage(balance: string, totalSupply: string): number {
     const percentage = Number((balanceNum * BigInt(10000) / totalSupplyNum)) / 100;
     return Math.min(100, Math.max(0, percentage)); // Ensure between 0 and 100
   } catch (error) {
-    console.error('Error calculating percentage:', error);
+    console.error('%c[Error] Failed to calculate percentage:', 'color: #f44336; font-weight: bold;', error);
     return 0;
   }
 }
@@ -161,7 +173,7 @@ export async function getAccountInfo(accountId: string) {
     const response = await axios.get(`/api/accounts/${accountId}`);
     return response.data;
   } catch (error: any) {
-    console.error('Error fetching account info:', {
+    console.error('%c[Error] Failed to fetch account info:', 'color: #f44336; font-weight: bold;', {
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
@@ -196,7 +208,7 @@ function formatBalance(balance: string, decimals: number): string {
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return parts.join('.');
   } catch (error) {
-    console.error('Error formatting balance:', error);
+    console.error('%c[Error] Failed to format balance:', 'color: #f44336; font-weight: bold;', error);
     return balance;
   }
 }
