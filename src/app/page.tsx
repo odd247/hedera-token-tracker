@@ -154,25 +154,36 @@ export default function Home() {
 
         {data.holders.length > 0 && !data.loading && (
           <div className="bg-white/90 backdrop-blur border-2 border-purple-200 rounded-lg overflow-hidden shadow-lg">
-            <div className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500">
-              <h3 className="text-lg font-bold text-white">Top Token Holders</h3>
+            <div className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 flex items-center">
+              <div className="w-16">
+                <h3 className="text-lg font-bold text-white">Rank</h3>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white">Account</h3>
+              </div>
+              <div className="w-48 text-right">
+                <h3 className="text-lg font-bold text-white">Balance</h3>
+              </div>
+              <div className="w-32 text-right">
+                <h3 className="text-lg font-bold text-white">Share</h3>
+              </div>
             </div>
-            <div className="divide-y-2 divide-purple-100">
+            <div className="divide-y divide-purple-100">
               {data.holders.map((holder, index) => (
                 <div key={holder.account} 
-                  className="px-8 py-4 hover:bg-purple-50 transition-colors duration-150 grid grid-cols-12 gap-6 items-center">
-                  <div className="col-span-1">
-                    <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg shadow-md">
+                  className="px-8 py-3 hover:bg-purple-50 transition-colors duration-150 flex items-center">
+                  <div className="w-16">
+                    <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg shadow-md">
                       #{index + 1}
                     </div>
                   </div>
-                  <div className="col-span-7 font-mono text-sm truncate">
+                  <div className="flex-1 font-mono text-sm truncate">
                     {holder.account}
                   </div>
-                  <div className="col-span-2 text-right font-bold text-purple-600">
+                  <div className="w-48 text-right font-bold text-purple-600">
                     {Number(holder.balance).toLocaleString()}
                   </div>
-                  <div className="col-span-2 text-right font-bold text-pink-500">
+                  <div className="w-32 text-right font-bold text-pink-500">
                     {holder.percentage.toFixed(2)}%
                   </div>
                 </div>
