@@ -43,7 +43,10 @@ function formatTokenId(tokenId: string): string {
 export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
-    const response = await axios.get(`/api/tokens/${formattedTokenId}/info`);
+    const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}`;
+    console.log('Fetching from:', url);
+    const response = await axios.get(url);
+    
     return {
       name: response.data.name,
       symbol: response.data.symbol,
@@ -51,10 +54,7 @@ export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
       total_supply: response.data.total_supply
     };
   } catch (error: any) {
-    console.error('Error fetching token info:', {
-      error,
-      response: error.response?.data
-    });
+    console.error('Error fetching token info:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -62,15 +62,36 @@ export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
 export async function getTokenHolders(tokenId: string, limit: number = 50): Promise<TokenHoldersResponse> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
-    const response = await axios.get(`/api/tokens/${formattedTokenId}/holders?limit=${limit}`);
-    return response.data;
+    const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances?limit=${limit}&order=desc`;
+    console.log('Fetching from:', url);
+    const response = await axios.get(url);
+    
+    const holders = response.data.balances.map((balance: any) => ({
+      account: balance.account,
+      balance: balance.balance,
+      percentage: calculatePercentage(balance.balance, response.data.total_supply)
+    }));
+
+    return {
+      holders,
+      stats: {
+        totalAccounts: response.data.balances.length.toString(),
+        accountsAboveOne: holders.filter((h: any) => Number(h.balance) > 1).length
+      }
+    };
   } catch (error: any) {
-    console.error('Error fetching token holders:', {
-      error,
-      response: error.response?.data
-    });
+    console.error('Error fetching token holders:', error.response?.data || error.message);
     throw error;
   }
+}
+
+function calculatePercentage(balance: string, totalSupply: string): number {
+  const balanceNum = BigInt(balance);
+  const totalSupplyNum = BigInt(totalSupply);
+  
+  if (totalSupplyNum === BigInt(0)) return 0;
+  
+  return Number((balanceNum * BigInt(10000) / totalSupplyNum) / BigInt(100));
 }
 
 export async function getAccountInfo(accountId: string) {

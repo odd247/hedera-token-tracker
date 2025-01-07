@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getTokenHolders, getTokenInfo, TokenHolder, TokenInfo } from '../utils/hedera';
+import { getTokenHolders, getTokenInfo, TokenHolder, TokenInfo } from '@/utils/hedera';
 
 interface TokenData {
   holders: TokenHolder[];
@@ -19,23 +19,8 @@ export default function Home() {
     loading: false
   });
 
-  const formatBalance = (balance: string, decimals: number) => {
-    const value = BigInt(balance);
-    const divisor = BigInt(10 ** decimals);
-    const integerPart = value / divisor;
-    const fractionalPart = value % divisor;
-    
-    let formattedFractional = fractionalPart.toString().padStart(decimals, '0');
-    // Remove trailing zeros
-    formattedFractional = formattedFractional.replace(/0+$/, '');
-    
-    const formattedInteger = integerPart.toLocaleString();
-    
-    return formattedFractional ? `${formattedInteger}.${formattedFractional}` : formattedInteger;
-  };
-
   const handleSearch = async () => {
-    if (!tokenId) {
+    if (!tokenId.trim()) {
       setData(prev => ({ ...prev, error: 'Please enter a token ID' }));
       return;
     }
@@ -47,16 +32,13 @@ export default function Home() {
       const info = await getTokenInfo(tokenId);
       console.log('Received token info:', info);
 
-      // Ensure decimals is a number
-      const decimalsAsNumber = typeof info.decimals === 'string' ? parseInt(info.decimals, 10) : info.decimals;
-      
       setData(prev => ({
         ...prev,
         info: {
           name: info.name,
           symbol: info.symbol,
           total_supply: info.total_supply,
-          decimals: decimalsAsNumber
+          decimals: info.decimals
         }
       }));
 
@@ -79,6 +61,27 @@ export default function Home() {
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const formatBalance = (balance: string, decimals: number) => {
+    const value = BigInt(balance);
+    const divisor = BigInt(10 ** decimals);
+    const integerPart = value / divisor;
+    const fractionalPart = value % divisor;
+    
+    let formattedFractional = fractionalPart.toString().padStart(decimals, '0');
+    // Remove trailing zeros
+    formattedFractional = formattedFractional.replace(/0+$/, '');
+    
+    const formattedInteger = integerPart.toLocaleString();
+    
+    return formattedFractional ? `${formattedInteger}.${formattedFractional}` : formattedInteger;
+  };
+
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
@@ -89,6 +92,7 @@ export default function Home() {
             type="text"
             value={tokenId}
             onChange={(e) => setTokenId(e.target.value)}
+            onKeyDown={handleKeyPress}
             placeholder="Enter token ID (e.g., 0.0.1234)"
             className="flex-1 p-2 border rounded"
           />
