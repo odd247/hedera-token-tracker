@@ -1,5 +1,5 @@
 {
-  "name": "hedera-token-tracker",
+  "name": "hedera-token-balances",
   "version": "0.1.0",
   "private": true,
   "scripts": {
