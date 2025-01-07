@@ -131,16 +131,17 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
 
     console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
     const holders = validBalances.map((balance): TokenHolder => {
-      // Convert balance to actual value using decimals
-      const balanceNum = Number(balance.balance) / Math.pow(10, balance.decimals);
-      const balanceStr = balanceNum.toString();
-      const percentage = calculatePercentage(balanceStr, totalSupply);
+      // Format balance to handle decimals
+      const rawBalance = Number(balance.balance);
+      const adjustedBalance = rawBalance / Math.pow(10, balance.decimals);
+      const balanceStr = adjustedBalance.toFixed(balance.decimals);
       
+      const percentage = calculatePercentage(balanceStr, totalSupply);
       console.log('%c[Holder]', 'color: #2196F3;', {
         account: balance.account,
-        rawBalance: balance.balance,
-        decimals: balance.decimals,
-        adjustedBalance: balanceNum,
+        rawBalance,
+        adjustedBalance,
+        balanceStr,
         percentage: percentage + '%'
       });
       
@@ -177,15 +178,16 @@ function calculatePercentage(balance: string, totalSupply: string): number {
       return 0;
     }
 
-    const balanceNum = BigInt(balance);
-    const totalSupplyNum = BigInt(totalSupply);
+    // Convert to whole numbers by removing decimals
+    const balanceWhole = Math.floor(Number(balance));
+    const totalSupplyWhole = Math.floor(Number(totalSupply));
     
-    if (totalSupplyNum === BigInt(0)) {
+    if (totalSupplyWhole === 0) {
       return 0;
     }
     
     // Calculate percentage with higher precision
-    const percentage = Number((balanceNum * BigInt(10000) / totalSupplyNum)) / 100;
+    const percentage = (balanceWhole * 100) / totalSupplyWhole;
     return Math.min(100, Math.max(0, percentage)); // Ensure between 0 and 100
   } catch (error) {
     console.error('%c[Error] Failed to calculate percentage:', 'color: #f44336; font-weight: bold;', error);
