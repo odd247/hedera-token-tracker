@@ -69,31 +69,38 @@ export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
   }
 }
 
-export async function getTokenHolders(tokenId: string, limit: number = 50): Promise<TokenHoldersResponse> {
+export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResponse> {
   try {
     console.log('%c[Token Holders] Starting fetch...', 'color: #2196F3; font-weight: bold;');
     
     const formattedTokenId = formatTokenId(tokenId);
-    const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances`;
+    let url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances`;
     console.log('%c[API Call] Fetching token holders from:', 'color: #2196F3; font-weight: bold;', url);
     
-    const response = await axios.get<{ balances: ApiBalance[] }>(url);
-    console.log('%c[API Response] Raw data:', 'color: #2196F3; font-weight: bold;', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data,
-      balances: response.data.balances.map(b => ({
-        account: b.account,
-        balance: b.balance,
-        decimals: b.decimals,
-        balanceNum: Number(b.balance)
-      }))
-    });
+    let allBalances: ApiBalance[] = [];
+    let hasNextPage = true;
 
-    if (!response.data || !Array.isArray(response.data.balances)) {
-      console.error('%c[Error] Invalid response format:', 'color: #f44336; font-weight: bold;', response.data);
-      throw new Error('Invalid response format from Hedera API');
+    while (hasNextPage) {
+      console.log('%c[API Call] Fetching page:', 'color: #2196F3; font-weight: bold;', url);
+      const response = await axios.get<{ balances: ApiBalance[], links?: { next?: string } }>(url);
+      
+      if (!response.data || !Array.isArray(response.data.balances)) {
+        console.error('%c[Error] Invalid response format:', 'color: #f44336; font-weight: bold;', response.data);
+        throw new Error('Invalid response format from Hedera API');
+      }
+
+      allBalances = [...allBalances, ...response.data.balances];
+      console.log('%c[API Response] Got balances:', 'color: #2196F3; font-weight: bold;', response.data.balances.length);
+
+      // Check for next page
+      if (response.data.links?.next) {
+        url = `https://mainnet-public.mirrornode.hedera.com${response.data.links.next}`;
+      } else {
+        hasNextPage = false;
+      }
     }
+
+    console.log('%c[API Response] Total balances:', 'color: #2196F3; font-weight: bold;', allBalances.length);
 
     let totalSupply = '0';
     try {
@@ -106,7 +113,7 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     }
 
     console.log('%c[Processing] Filtering balances...', 'color: #2196F3; font-weight: bold;');
-    const validBalances = response.data.balances.filter((balance): balance is ApiBalance => {
+    const validBalances = allBalances.filter((balance): balance is ApiBalance => {
       const isValid = balance && 
         typeof balance.account === 'string' && 
         (typeof balance.balance === 'string' || typeof balance.balance === 'number') &&
