@@ -23,6 +23,12 @@ export interface TokenHoldersResponse {
   };
 }
 
+interface ApiBalance {
+  account: string;
+  balance: string;
+  decimals: number;
+}
+
 function formatTokenId(tokenId: string): string {
   // Remove any spaces and convert to lowercase
   tokenId = tokenId.trim().toLowerCase();
@@ -68,14 +74,14 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances`;
     console.log('%c[API Call] Fetching token holders from:', 'color: #2196F3; font-weight: bold;', url);
     
-    const response = await axios.get(url);
+    const response = await axios.get<{ balances: ApiBalance[] }>(url);
     console.log('%c[API Response] Raw data:', 'color: #2196F3; font-weight: bold;', {
       status: response.status,
       headers: response.headers,
       data: response.data
     });
 
-    if (!response.data || !response.data.balances) {
+    if (!response.data || !Array.isArray(response.data.balances)) {
       console.error('%c[Error] Invalid response format:', 'color: #f44336; font-weight: bold;', response.data);
       throw new Error('Invalid response format from Hedera API');
     }
@@ -91,12 +97,12 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     }
 
     console.log('%c[Processing] Filtering balances...', 'color: #2196F3; font-weight: bold;');
-    const validBalances = response.data.balances.filter((balance: any) => {
+    const validBalances = response.data.balances.filter((balance): balance is ApiBalance => {
       const isValid = balance && 
         typeof balance.account === 'string' && 
         typeof balance.balance === 'string' &&
-        balance.decimals !== undefined &&
-        Number(balance.balance) > 0;  // Use Number instead of BigInt for initial check
+        typeof balance.decimals === 'number' &&
+        Number(balance.balance) > 0;
       
       if (!isValid) {
         console.log('%c[Invalid Balance]', 'color: #FFC107; font-weight: bold;', balance);
@@ -108,7 +114,7 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     console.log('%c[Valid Balances] Count:', 'color: #2196F3; font-weight: bold;', validBalances.length);
 
     console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
-    const holders = validBalances.map((balance: any) => {
+    const holders = validBalances.map((balance): TokenHolder => {
       const percentage = calculatePercentage(balance.balance, totalSupply);
       console.log('%c[Holder]', 'color: #2196F3;', {
         account: balance.account,
@@ -124,13 +130,13 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     });
 
     console.log('%c[Processing] Sorting holders...', 'color: #2196F3; font-weight: bold;');
-    holders.sort((a: TokenHolder, b: TokenHolder) => Number(b.balance) - Number(a.balance));
+    holders.sort((a, b) => Number(b.balance) - Number(a.balance));
 
-    const result = {
+    const result: TokenHoldersResponse = {
       holders,
       stats: {
         totalAccounts: validBalances.length.toString(),
-        accountsAboveOne: holders.filter((h: TokenHolder) => Number(h.balance) > 1).length
+        accountsAboveOne: holders.filter(h => Number(h.balance) > 1).length
       }
     };
 
