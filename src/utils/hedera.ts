@@ -65,7 +65,7 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     console.log('%c[Token Holders] Starting fetch...', 'color: #2196F3; font-weight: bold;');
     
     const formattedTokenId = formatTokenId(tokenId);
-    const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances?limit=${limit}&order=desc`;
+    const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances`;
     console.log('%c[API Call] Fetching token holders from:', 'color: #2196F3; font-weight: bold;', url);
     
     const response = await axios.get(url);
@@ -95,7 +95,8 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
       const isValid = balance && 
         typeof balance.account === 'string' && 
         typeof balance.balance === 'string' &&
-        BigInt(balance.balance) > BigInt(0);
+        balance.decimals !== undefined &&
+        Number(balance.balance) > 0;  // Use Number instead of BigInt for initial check
       
       if (!isValid) {
         console.log('%c[Invalid Balance]', 'color: #FFC107; font-weight: bold;', balance);
@@ -123,22 +124,18 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     });
 
     console.log('%c[Processing] Sorting holders...', 'color: #2196F3; font-weight: bold;');
-    holders.sort((a, b) => {
-      const balanceA = BigInt(a.balance);
-      const balanceB = BigInt(b.balance);
-      return balanceB > balanceA ? 1 : balanceB < balanceA ? -1 : 0;
-    });
+    holders.sort((a, b) => Number(b.balance) - Number(a.balance));
 
-    const response = {
+    const result = {
       holders,
       stats: {
         totalAccounts: validBalances.length.toString(),
-        accountsAboveOne: holders.filter((h: TokenHolder) => BigInt(h.balance) > BigInt(1)).length
+        accountsAboveOne: holders.filter((h: TokenHolder) => Number(h.balance) > 1).length
       }
     };
 
-    console.log('%c[Final Result]', 'color: #4CAF50; font-weight: bold;', response);
-    return response;
+    console.log('%c[Final Result]', 'color: #4CAF50; font-weight: bold;', result);
+    return result;
 
   } catch (error: any) {
     console.error('%c[Error] Failed to fetch token holders:', 'color: #f44336; font-weight: bold;', error.response?.data || error.message);
