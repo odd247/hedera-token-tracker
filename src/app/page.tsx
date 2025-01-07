@@ -111,19 +111,23 @@ export default function Home() {
                 : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:scale-105 hover:shadow-xl active:scale-95'
             }`}
           >
-            {data.loading ? '⚡️ Searching...' : '🔍 Search'}
+            {data.loading ? (
+              <span className="inline-flex items-center">
+                ⚡️ Searching<span className="loading-dots"></span>
+              </span>
+            ) : (
+              '🔍 Search'
+            )}
           </button>
         </div>
 
         {data.loading && (
-          <div className="text-center py-8">
-            <div className="inline-block animate-bounce bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-2 mb-4">
-              <span className="text-2xl">🐸</span>
+          <div className="text-center py-12">
+            <div className="inline-block p-6 bg-white/90 backdrop-blur rounded-lg shadow-lg">
+              <p className="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text">
+                Fetching token data<span className="loading-dots"></span>
+              </p>
             </div>
-            <p className="text-xl font-bold mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text">
-              Keep your shirt on, I'm sorting through a lot of information...
-            </p>
-            <p className="text-gray-500">Fetching token data and analyzing holder distribution</p>
           </div>
         )}
 
@@ -181,9 +185,11 @@ export default function Home() {
           </div>
         )}
       </div>
-      <footer className="fixed bottom-0 left-0 right-0 p-4 text-center text-sm text-gray-500">
-        brought to you by <a href="https://x.com/__o__d__d__" target="_blank" rel="noopener noreferrer" className="text-purple-500 hover:text-pink-500 transition-colors duration-200">odd</a> enterprises
-      </footer>
+      {(data.info || data.holders.length > 0) && !data.loading && (
+        <footer className="fixed bottom-0 left-0 right-0 p-4 text-center text-sm text-gray-500">
+          brought to you by <a href="https://x.com/__o__d__d__" target="_blank" rel="noopener noreferrer" className="text-purple-500 hover:text-pink-500 transition-colors duration-200">odd</a> enterprises
+        </footer>
+      )}
     </main>
   );
 }
