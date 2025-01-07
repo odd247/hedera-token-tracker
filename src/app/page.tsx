@@ -181,6 +181,9 @@ export default function Home() {
           </div>
         )}
       </div>
+      <footer className="fixed bottom-0 left-0 right-0 p-4 text-center text-sm text-gray-500">
+        brought to you by <a href="https://x.com/__o__d__d__" target="_blank" rel="noopener noreferrer" className="text-purple-500 hover:text-pink-500 transition-colors duration-200">odd</a> enterprises
+      </footer>
     </main>
   );
 }
