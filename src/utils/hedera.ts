@@ -66,7 +66,10 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     console.log('Fetching from:', url);
     const response = await axios.get(url);
     
-    if (!response.data || !response.data.balances || !Array.isArray(response.data.balances)) {
+    // Debug response
+    console.log('Raw token holders response:', response.data);
+
+    if (!response.data || !Array.isArray(response.data.balances)) {
       throw new Error('Invalid response format from Hedera API');
     }
 
@@ -74,23 +77,43 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     try {
       const infoResponse = await getTokenInfo(tokenId);
       totalSupply = infoResponse.total_supply;
+      console.log('Total supply:', totalSupply);
     } catch (error) {
       console.error('Error fetching total supply:', error);
       totalSupply = '0';
     }
 
-    const holders = response.data.balances
-      .filter((balance: any) => balance && balance.balance && typeof balance.balance === 'string')
-      .map((balance: any) => ({
+    const validBalances = response.data.balances.filter((balance: any) => 
+      balance && 
+      typeof balance.account === 'string' && 
+      typeof balance.balance === 'string' &&
+      BigInt(balance.balance) > BigInt(0)  // Only include non-zero balances
+    );
+
+    console.log('Valid balances count:', validBalances.length);
+
+    const holders = validBalances.map((balance: any) => {
+      const percentage = calculatePercentage(balance.balance, totalSupply);
+      console.log(`Holder ${balance.account}: Balance ${balance.balance}, Percentage ${percentage}%`);
+      
+      return {
         account: balance.account,
         balance: balance.balance,
-        percentage: calculatePercentage(balance.balance, totalSupply)
-      }));
+        percentage
+      };
+    });
+
+    // Sort holders by balance in descending order
+    holders.sort((a, b) => {
+      const balanceA = BigInt(a.balance);
+      const balanceB = BigInt(b.balance);
+      return balanceB > balanceA ? 1 : balanceB < balanceA ? -1 : 0;
+    });
 
     return {
       holders,
       stats: {
-        totalAccounts: response.data.balances.length.toString(),
+        totalAccounts: validBalances.length.toString(),
         accountsAboveOne: holders.filter((h: TokenHolder) => BigInt(h.balance) > BigInt(1)).length
       }
     };
