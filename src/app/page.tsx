@@ -103,49 +103,70 @@ export default function Home() {
           <button
             onClick={handleSearch}
             disabled={data.loading}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors duration-200"
+            className={`px-4 py-2 rounded text-white font-medium ${
+              data.loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
+            }`}
           >
-            {data.loading ? 'Loading...' : 'Search'}
+            {data.loading ? 'Searching...' : 'Search'}
           </button>
         </div>
 
-        {data.error && (
-          <div className="text-red-500 mb-4">{data.error}</div>
-        )}
-
-        {data.info && (
-          <div className="mb-8 p-4 bg-gray-100 rounded">
-            <h2 className="text-xl font-bold mb-2">Token Information</h2>
-            <div><strong>Name:</strong> {data.info.name}</div>
-            <div><strong>Symbol:</strong> {data.info.symbol}</div>
-            <div><strong>Total Supply:</strong> {formatBalance(data.info.total_supply, data.info.decimals)}</div>
+        {data.loading && (
+          <div className="text-center py-8 animate-pulse">
+            <p className="text-xl text-gray-600 font-medium mb-4">🐸 Keep your shirt on, I'm sorting through a lot of information...</p>
+            <p className="text-gray-500">Fetching token data and analyzing holder distribution</p>
           </div>
         )}
 
-        {data.holders.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold mb-4">Top Token Holders</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-2 text-left">Account</th>
-                    <th className="p-2 text-right">Balance</th>
-                    <th className="p-2 text-right">Percentage</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.holders.map((holder, index) => (
-                    <tr key={holder.account} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
-                      <td className="p-2">{holder.account}</td>
-                      <td className="p-2 text-right font-mono">
-                        {data.info ? formatBalance(holder.balance, data.info.decimals) : holder.balance}
-                      </td>
-                      <td className="p-2 text-right">{holder.percentage.toFixed(4)}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {data.error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{data.error}</span>
+          </div>
+        )}
+
+        {data.info && !data.loading && (
+          <div className="bg-white shadow rounded-lg p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4">{data.info.name} ({data.info.symbol})</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-600">Total Supply</p>
+                <p className="text-xl font-semibold">{Number(data.info.total_supply).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Decimals</p>
+                <p className="text-xl font-semibold">{data.info.decimals}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {data.holders.length > 0 && !data.loading && (
+          <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+              <h3 className="text-lg font-semibold">Top Token Holders</h3>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {data.holders.map((holder, index) => (
+                <div key={holder.account} className="px-6 py-4 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <div className="w-8 text-lg font-bold text-gray-400">#{index + 1}</div>
+                    <div className="flex-1">
+                      <p className="font-mono text-sm">{holder.account}</p>
+                      <div className="flex items-center mt-1">
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-600">
+                            Balance: <span className="font-medium">{Number(holder.balance).toLocaleString()}</span>
+                          </p>
+                        </div>
+                        <div className="w-24 text-right">
+                          <p className="text-sm font-medium text-gray-900">{holder.percentage.toFixed(2)}%</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
