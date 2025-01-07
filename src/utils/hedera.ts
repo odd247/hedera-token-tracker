@@ -78,7 +78,13 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     console.log('%c[API Response] Raw data:', 'color: #2196F3; font-weight: bold;', {
       status: response.status,
       headers: response.headers,
-      data: response.data
+      data: response.data,
+      balances: response.data.balances.map(b => ({
+        account: b.account,
+        balance: b.balance,
+        decimals: b.decimals,
+        balanceNum: Number(b.balance)
+      }))
     });
 
     if (!response.data || !Array.isArray(response.data.balances)) {
@@ -101,11 +107,21 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
       const isValid = balance && 
         typeof balance.account === 'string' && 
         (typeof balance.balance === 'string' || typeof balance.balance === 'number') &&
-        typeof balance.decimals === 'number' &&
-        Number(balance.balance) > 0;
+        typeof balance.decimals === 'number';  // Only check if fields exist and have correct types
       
       if (!isValid) {
-        console.log('%c[Invalid Balance]', 'color: #FFC107; font-weight: bold;', balance);
+        console.log('%c[Invalid Balance]', 'color: #FFC107; font-weight: bold;', {
+          balance,
+          isValidAccount: typeof balance.account === 'string',
+          isValidBalance: typeof balance.balance === 'string' || typeof balance.balance === 'number',
+          isValidDecimals: typeof balance.decimals === 'number'
+        });
+      } else {
+        console.log('%c[Valid Balance]', 'color: #4CAF50; font-weight: bold;', {
+          account: balance.account,
+          balance: balance.balance,
+          decimals: balance.decimals
+        });
       }
       
       return isValid;
@@ -115,11 +131,16 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
 
     console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
     const holders = validBalances.map((balance): TokenHolder => {
-      const balanceStr = balance.balance.toString();
+      // Convert balance to actual value using decimals
+      const balanceNum = Number(balance.balance) / Math.pow(10, balance.decimals);
+      const balanceStr = balanceNum.toString();
       const percentage = calculatePercentage(balanceStr, totalSupply);
+      
       console.log('%c[Holder]', 'color: #2196F3;', {
         account: balance.account,
-        balance: balanceStr,
+        rawBalance: balance.balance,
+        decimals: balance.decimals,
+        adjustedBalance: balanceNum,
         percentage: percentage + '%'
       });
       
