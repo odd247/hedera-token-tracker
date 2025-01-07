@@ -88,8 +88,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen p-8">
-      <div className="max-w-6xl mx-auto p-8 font-mono">
-        <h1 className="text-4xl font-bold mb-12 text-center bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-transparent bg-clip-text">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-medium mb-12 text-center">
           Hedera Token Tracker
         </h1>
         
@@ -100,34 +100,32 @@ export default function Home() {
             onChange={(e) => setTokenId(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Enter token ID (e.g., 0.0.1234)"
-            className="flex-1 p-3 text-lg border-2 border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/90 backdrop-blur"
+            className="flex-1 px-4 py-2 text-base border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 bg-white"
           />
           <button
             onClick={handleSearch}
             disabled={data.loading}
-            className={`px-8 py-3 rounded-lg text-lg font-bold text-white shadow-lg transform transition-all duration-200 ${
+            className={`px-6 py-2 rounded-lg text-base font-medium text-white transition-colors ${
               data.loading 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:scale-105 hover:shadow-xl active:scale-95'
+                ? 'bg-gray-300 cursor-not-allowed' 
+                : 'bg-gray-900 hover:bg-gray-800'
             }`}
           >
             {data.loading ? (
               <span className="inline-flex items-center">
-                ⚡️ Searching<span className="loading-dots"></span>
+                Searching<span className="loading-dots"></span>
               </span>
             ) : (
-              '🔍 Search'
+              'Search'
             )}
           </button>
         </div>
 
         {data.loading && (
-          <div className="text-center py-12">
-            <div className="inline-block p-6 bg-white/90 backdrop-blur rounded-lg shadow-lg">
-              <p className="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text">
-                Fetching token data<span className="loading-dots"></span>
-              </p>
-            </div>
+          <div className="text-center py-8">
+            <p className="text-base text-gray-600">
+              Fetching token data<span className="loading-dots"></span>
+            </p>
           </div>
         )}
 
@@ -139,43 +137,42 @@ export default function Home() {
         )}
 
         {data.info && !data.loading && (
-          <div className="bg-white/90 backdrop-blur border-2 border-purple-200 rounded-lg p-8 mb-12 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text">
-              {data.info.name} ({data.info.symbol})
-            </h2>
-            <div className="border-2 border-purple-100 rounded-lg p-6">
-              <p className="text-purple-600 font-bold mb-2">Total Supply</p>
-              <p className="text-3xl font-bold">{Number(data.info.total_supply).toLocaleString()}</p>
+          <div className="bg-white border border-gray-100 rounded-lg p-6 mb-8 shadow-sm">
+            <div className="flex items-baseline gap-3 mb-4">
+              <h2 className="text-xl font-medium">{data.info.name}</h2>
+              <span className="text-sm text-gray-500">{data.info.symbol}</span>
             </div>
+            <div className="text-sm text-gray-600">Total Supply</div>
+            <div className="text-2xl font-medium">{Number(data.info.total_supply).toLocaleString()}</div>
           </div>
         )}
 
         {data.holders.length > 0 && !data.loading && (
-          <div className="bg-white/90 backdrop-blur border-2 border-purple-200 rounded-lg overflow-hidden shadow-lg">
-            <table className="w-full token-table">
+          <div className="bg-white border border-gray-100 rounded-lg overflow-hidden shadow-sm">
+            <table className="token-table">
               <thead>
                 <tr>
-                  <th className="token-header text-left w-24">Rank</th>
-                  <th className="token-header text-left">Account</th>
-                  <th className="token-header text-right w-48">Balance</th>
-                  <th className="token-header text-right w-32">Share</th>
+                  <th className="w-20">#</th>
+                  <th>Account</th>
+                  <th className="text-right">Balance</th>
+                  <th className="w-24 text-right">Share</th>
                 </tr>
               </thead>
               <tbody>
                 {data.holders.map((holder, index) => (
                   <tr key={holder.account}>
-                    <td className="token-cell">
+                    <td>
                       <div className="token-rank">
-                        #{index + 1}
+                        {index + 1}
                       </div>
                     </td>
-                    <td className="token-cell font-mono truncate max-w-0">
+                    <td className="token-account truncate max-w-0">
                       {holder.account}
                     </td>
-                    <td className="token-cell text-right font-bold text-purple-600 whitespace-nowrap">
+                    <td className="token-balance text-right">
                       {Number(holder.balance).toLocaleString()}
                     </td>
-                    <td className="token-cell text-right font-bold text-pink-500 whitespace-nowrap">
+                    <td className="token-share text-right">
                       {holder.percentage.toFixed(2)}%
                     </td>
                   </tr>
@@ -186,8 +183,8 @@ export default function Home() {
         )}
       </div>
       {(data.info || data.holders.length > 0) && !data.loading && (
-        <footer className="fixed bottom-0 left-0 right-0 p-4 text-center text-sm text-gray-500">
-          brought to you by <a href="https://x.com/__o__d__d__" target="_blank" rel="noopener noreferrer" className="text-purple-500 hover:text-pink-500 transition-colors duration-200">odd</a> enterprises
+        <footer className="fixed bottom-0 left-0 right-0 p-4 text-center text-sm text-gray-400">
+          brought to you by <a href="https://x.com/__o__d__d__" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors">odd</a> enterprises
         </footer>
       )}
     </main>
