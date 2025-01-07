@@ -25,7 +25,7 @@ export interface TokenHoldersResponse {
 
 interface ApiBalance {
   account: string;
-  balance: string;
+  balance: string | number;
   decimals: number;
 }
 
@@ -100,7 +100,7 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     const validBalances = response.data.balances.filter((balance): balance is ApiBalance => {
       const isValid = balance && 
         typeof balance.account === 'string' && 
-        typeof balance.balance === 'string' &&
+        (typeof balance.balance === 'string' || typeof balance.balance === 'number') &&
         typeof balance.decimals === 'number' &&
         Number(balance.balance) > 0;
       
@@ -115,16 +115,17 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
 
     console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
     const holders = validBalances.map((balance): TokenHolder => {
-      const percentage = calculatePercentage(balance.balance, totalSupply);
+      const balanceStr = balance.balance.toString();
+      const percentage = calculatePercentage(balanceStr, totalSupply);
       console.log('%c[Holder]', 'color: #2196F3;', {
         account: balance.account,
-        balance: balance.balance,
+        balance: balanceStr,
         percentage: percentage + '%'
       });
       
       return {
         account: balance.account,
-        balance: balance.balance,
+        balance: balanceStr,
         percentage
       };
     });
