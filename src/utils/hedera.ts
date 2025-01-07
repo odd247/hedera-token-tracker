@@ -67,9 +67,10 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
     const response = await axios.get(url);
     
     // Debug response
-    console.log('Raw token holders response:', response.data);
+    console.log('Raw token holders response:', JSON.stringify(response.data, null, 2));
 
-    if (!response.data || !Array.isArray(response.data.balances)) {
+    if (!response.data || !response.data.balances) {
+      console.error('Invalid response format:', response.data);
       throw new Error('Invalid response format from Hedera API');
     }
 
@@ -83,12 +84,18 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
       totalSupply = '0';
     }
 
-    const validBalances = response.data.balances.filter((balance: any) => 
-      balance && 
-      typeof balance.account === 'string' && 
-      typeof balance.balance === 'string' &&
-      BigInt(balance.balance) > BigInt(0)  // Only include non-zero balances
-    );
+    const validBalances = response.data.balances.filter((balance: any) => {
+      const isValid = balance && 
+        typeof balance.account === 'string' && 
+        typeof balance.balance === 'string' &&
+        BigInt(balance.balance) > BigInt(0);
+      
+      if (!isValid) {
+        console.log('Invalid balance entry:', balance);
+      }
+      
+      return isValid;
+    });
 
     console.log('Valid balances count:', validBalances.length);
 
@@ -110,13 +117,17 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
       return balanceB > balanceA ? 1 : balanceB < balanceA ? -1 : 0;
     });
 
-    return {
+    const response = {
       holders,
       stats: {
         totalAccounts: validBalances.length.toString(),
         accountsAboveOne: holders.filter((h: TokenHolder) => BigInt(h.balance) > BigInt(1)).length
       }
     };
+
+    console.log('Processed response:', JSON.stringify(response, null, 2));
+    return response;
+
   } catch (error: any) {
     console.error('Error fetching token holders:', error.response?.data || error.message);
     throw error;
