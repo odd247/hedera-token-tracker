@@ -1,11 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',  // Changed from 'export' to 'standalone'
+  trailingSlash: true,
+  output: 'export',
+  distDir: 'dist',
   images: {
     unoptimized: true
-  },
-  experimental: {
-    appDir: true
   }
 }
 
