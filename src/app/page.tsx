@@ -51,7 +51,7 @@ export default function Home() {
           name: info.name,
           symbol: info.symbol,
           total_supply: info.total_supply,
-          decimals: info.decimals
+          decimals: Number(info.decimals)
         }
       }));
 
