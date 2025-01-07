@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Track top 50 holders of any Hedera token',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
