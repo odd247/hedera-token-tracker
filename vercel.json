@@ -1,7 +1,7 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "vite",
+  "outputDirectory": "out",
+  "framework": "nextjs",
   "rewrites": [
     {
       "source": "/(.*)",
