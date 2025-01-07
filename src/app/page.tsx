@@ -124,7 +124,7 @@ export default function Home() {
         {data.loading && (
           <div className="text-center py-8">
             <p className="text-base text-gray-600">
-              Fetching token data<span className="loading-dots"></span>
+              Keep your shirt on, I am sorting through a lot of information<span className="loading-dots"></span>
             </p>
           </div>
         )}
