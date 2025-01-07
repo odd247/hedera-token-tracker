@@ -54,11 +54,14 @@ export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
     const response = await axios.get(url);
     console.log('%c[Token Info] Response:', 'color: #4CAF50; font-weight: bold;', response.data);
     
+    const decimals = Number(response.data.decimals);
+    const totalSupply = Number(response.data.total_supply) / Math.pow(10, decimals);
+    
     return {
       name: response.data.name,
       symbol: response.data.symbol,
-      decimals: Number(response.data.decimals),
-      total_supply: response.data.total_supply
+      decimals: decimals,
+      total_supply: totalSupply.toString()
     };
   } catch (error: any) {
     console.error('%c[Error] Failed to fetch token info:', 'color: #f44336; font-weight: bold;', error.response?.data || error.message);
@@ -107,7 +110,7 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
       const isValid = balance && 
         typeof balance.account === 'string' && 
         (typeof balance.balance === 'string' || typeof balance.balance === 'number') &&
-        typeof balance.decimals === 'number';  // Only check if fields exist and have correct types
+        typeof balance.decimals === 'number';
       
       if (!isValid) {
         console.log('%c[Invalid Balance]', 'color: #FFC107; font-weight: bold;', {
@@ -117,10 +120,14 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
           isValidDecimals: typeof balance.decimals === 'number'
         });
       } else {
+        // Convert balance to actual value using decimals
+        const rawBalance = Number(balance.balance);
+        const adjustedBalance = rawBalance / Math.pow(10, balance.decimals);
         console.log('%c[Valid Balance]', 'color: #4CAF50; font-weight: bold;', {
           account: balance.account,
-          balance: balance.balance,
-          decimals: balance.decimals
+          rawBalance,
+          decimals: balance.decimals,
+          adjustedBalance
         });
       }
       
@@ -131,17 +138,19 @@ export async function getTokenHolders(tokenId: string, limit: number = 50): Prom
 
     console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
     const holders = validBalances.map((balance): TokenHolder => {
-      // Format balance to handle decimals
+      // Convert balance to actual value using decimals
       const rawBalance = Number(balance.balance);
       const adjustedBalance = rawBalance / Math.pow(10, balance.decimals);
-      const balanceStr = adjustedBalance.toFixed(balance.decimals);
+      const balanceStr = adjustedBalance.toString();
       
-      const percentage = calculatePercentage(balanceStr, totalSupply);
+      const totalSupplyNum = Number(totalSupply);
+      const percentage = totalSupplyNum > 0 ? (adjustedBalance * 100) / totalSupplyNum : 0;
+      
       console.log('%c[Holder]', 'color: #2196F3;', {
         account: balance.account,
         rawBalance,
         adjustedBalance,
-        balanceStr,
+        totalSupply,
         percentage: percentage + '%'
       });
       
