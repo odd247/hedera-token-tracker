@@ -1,8 +1,8 @@
 {
   "/_not-found": "app/_not-found.js",
-  "/api/tokens/[tokenId]/info/route": "app/api/tokens/[tokenId]/info/route.js",
   "/api/token/holders/route": "app/api/token/holders/route.js",
-  "/api/token/info/route": "app/api/token/info/route.js",
   "/api/tokens/[tokenId]/holders/route": "app/api/tokens/[tokenId]/holders/route.js",
-  "/page": "app/page.js"
+  "/api/tokens/[tokenId]/info/route": "app/api/tokens/[tokenId]/info/route.js",
+  "/page": "app/page.js",
+  "/api/token/info/route": "app/api/token/info/route.js"
 }
