@@ -101,3 +101,9 @@ main {
   font-weight: 500;
   color: #9ca3af;
 }
+
+/* Footer styles */
+footer a,
+footer a:visited {
+  color: rgb(var(--foreground-rgb));
+}
