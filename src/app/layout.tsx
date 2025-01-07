@@ -19,7 +19,6 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta httpEquiv="Content-Security-Policy" content="script-src 'self' 'nonce-INTERNAL_NEXT_SCRIPT' 'strict-dynamic'" />
       </head>
       <body className={inter.className}>{children}</body>
     </html>
