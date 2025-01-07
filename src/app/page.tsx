@@ -100,15 +100,15 @@ export default function Home() {
             onChange={(e) => setTokenId(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Enter token ID (e.g., 0.0.1234)"
-            className="flex-1 px-4 py-2 text-base border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 bg-white"
+            className="flex-1 px-4 py-2 text-base border border-gray-700 rounded-lg focus:outline-none focus:border-gray-500 bg-gray-900"
           />
           <button
             onClick={handleSearch}
             disabled={data.loading}
             className={`px-6 py-2 rounded-lg text-base font-medium text-white transition-colors ${
               data.loading 
-                ? 'bg-gray-300 cursor-not-allowed' 
-                : 'bg-gray-900 hover:bg-gray-800'
+                ? 'bg-gray-700 cursor-not-allowed' 
+                : 'bg-gray-800 hover:bg-gray-700'
             }`}
           >
             {data.loading ? (
@@ -123,7 +123,7 @@ export default function Home() {
 
         {data.loading && (
           <div className="text-center py-8">
-            <p className="text-base text-gray-600">
+            <p className="text-base text-gray-400">
               Keep your shirt on, I am sorting through a lot of information<span className="loading-dots"></span>
             </p>
           </div>
@@ -137,18 +137,18 @@ export default function Home() {
         )}
 
         {data.info && !data.loading && (
-          <div className="bg-white border border-gray-100 rounded-lg p-6 mb-8 shadow-sm">
+          <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8 shadow-sm">
             <div className="flex items-baseline gap-3 mb-4">
-              <h2 className="text-xl font-medium">{data.info.name}</h2>
+              <h2 className="text-xl font-medium text-gray-200">{data.info.name}</h2>
               <span className="text-sm text-gray-500">{data.info.symbol}</span>
             </div>
-            <div className="text-sm text-gray-600">Total Supply</div>
-            <div className="text-2xl font-medium">{Number(data.info.total_supply).toLocaleString()}</div>
+            <div className="text-sm text-gray-500">Total Supply</div>
+            <div className="text-2xl font-medium text-gray-200">{Number(data.info.total_supply).toLocaleString()}</div>
           </div>
         )}
 
         {data.holders.length > 0 && !data.loading && (
-          <div className="bg-white border border-gray-100 rounded-lg overflow-hidden shadow-sm">
+          <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden shadow-sm">
             <table className="token-table">
               <thead>
                 <tr>
