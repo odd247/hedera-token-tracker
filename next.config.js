@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
+  poweredByHeader: false,
   images: {
     unoptimized: true
   },
@@ -32,6 +34,10 @@ const nextConfig = {
               "base-uri 'self'",
               "form-action 'self'"
             ].join('; ')
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
           }
         ]
       }
