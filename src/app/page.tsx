@@ -68,18 +68,22 @@ export default function Home() {
   };
 
   const formatBalance = (balance: string, decimals: number) => {
-    const value = BigInt(balance);
-    const divisor = BigInt(10 ** decimals);
-    const integerPart = value / divisor;
-    const fractionalPart = value % divisor;
-    
-    let formattedFractional = fractionalPart.toString().padStart(decimals, '0');
-    // Remove trailing zeros
-    formattedFractional = formattedFractional.replace(/0+$/, '');
-    
-    const formattedInteger = integerPart.toLocaleString();
-    
-    return formattedFractional ? `${formattedInteger}.${formattedFractional}` : formattedInteger;
+    try {
+      // Convert balance to number and handle decimals
+      const value = Number(balance);
+      if (isNaN(value)) return '0';
+      
+      // Format with proper decimal places
+      const formatted = value.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals
+      });
+      
+      return formatted;
+    } catch (error) {
+      console.error('Error formatting balance:', error);
+      return '0';
+    }
   };
 
   return (
