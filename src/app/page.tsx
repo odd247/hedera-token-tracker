@@ -194,7 +194,7 @@ export default function Home() {
         </div>
       </div>
       <footer className="w-full p-4 text-center text-gray-500">
-        brought to you by <a href="https://x.com/odd247" target="_blank" className="hover:underline">odd enterprises</a>
+        brought to you by <a href="https://x.com/odd247" target="_blank" className="hover:underline">odd</a> enterprises
       </footer>
     </main>
   );
