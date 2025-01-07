@@ -154,41 +154,36 @@ export default function Home() {
 
         {data.holders.length > 0 && !data.loading && (
           <div className="bg-white/90 backdrop-blur border-2 border-purple-200 rounded-lg overflow-hidden shadow-lg">
-            <div className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 flex items-center">
-              <div className="w-16">
-                <h3 className="text-lg font-bold text-white">Rank</h3>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-white">Account</h3>
-              </div>
-              <div className="w-48 text-right">
-                <h3 className="text-lg font-bold text-white">Balance</h3>
-              </div>
-              <div className="w-32 text-right">
-                <h3 className="text-lg font-bold text-white">Share</h3>
-              </div>
-            </div>
-            <div className="divide-y divide-purple-100">
-              {data.holders.map((holder, index) => (
-                <div key={holder.account} 
-                  className="px-8 py-3 hover:bg-purple-50 transition-colors duration-150 flex items-center">
-                  <div className="w-16">
-                    <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg shadow-md">
-                      #{index + 1}
-                    </div>
-                  </div>
-                  <div className="flex-1 font-mono text-sm truncate">
-                    {holder.account}
-                  </div>
-                  <div className="w-48 text-right font-bold text-purple-600">
-                    {Number(holder.balance).toLocaleString()}
-                  </div>
-                  <div className="w-32 text-right font-bold text-pink-500">
-                    {holder.percentage.toFixed(2)}%
-                  </div>
-                </div>
-              ))}
-            </div>
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gradient-to-r from-purple-500 to-pink-500">
+                  <th className="w-24 px-4 py-3 text-left text-white font-bold">Rank</th>
+                  <th className="px-4 py-3 text-left text-white font-bold">Account</th>
+                  <th className="w-48 px-4 py-3 text-right text-white font-bold">Balance</th>
+                  <th className="w-32 px-4 py-3 text-right text-white font-bold">Share</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-purple-100">
+                {data.holders.map((holder, index) => (
+                  <tr key={holder.account} className="hover:bg-purple-50 transition-colors duration-150">
+                    <td className="w-24 px-4 py-3">
+                      <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg shadow-md">
+                        #{index + 1}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-sm truncate max-w-0">
+                      {holder.account}
+                    </td>
+                    <td className="w-48 px-4 py-3 text-right font-bold text-purple-600 whitespace-nowrap">
+                      {Number(holder.balance).toLocaleString()}
+                    </td>
+                    <td className="w-32 px-4 py-3 text-right font-bold text-pink-500 whitespace-nowrap">
+                      {holder.percentage.toFixed(2)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
