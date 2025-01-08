@@ -3,7 +3,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import Providers from './providers'
+import ClientProviders from './providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,15 +24,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-      </head>
       <body className={inter.className}>
-        <Providers>
+        <ClientProviders>
           {children}
-        </Providers>
+        </ClientProviders>
       </body>
     </html>
   )
