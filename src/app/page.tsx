@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { getTokenHolders, getTokenInfo, TokenHolder, TokenInfo } from '@/utils/hedera';
+import { useQuery } from '@tanstack/react-query';
 
 interface TokenData {
   holders: TokenHolder[];
@@ -12,53 +13,36 @@ interface TokenData {
 
 export default function Home() {
   const [tokenId, setTokenId] = useState('');
-  const [data, setData] = useState<TokenData>({
-    holders: [],
-    info: null,
-    error: null,
-    loading: false
-  });
+  const [searchTrigger, setSearchTrigger] = useState('');
 
-  const handleSearch = async () => {
-    if (!tokenId.trim()) {
-      setData(prev => ({ ...prev, error: 'Please enter a token ID' }));
-      return;
-    }
-
-    setData(prev => ({ ...prev, loading: true, error: null }));
-
-    try {
-      console.log('Fetching token info for:', tokenId);
-      const info = await getTokenInfo(tokenId);
-      console.log('Received token info:', info);
-
-      setData(prev => ({
-        ...prev,
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['token', searchTrigger],
+    queryFn: async () => {
+      if (!searchTrigger) return null;
+      
+      const info = await getTokenInfo(searchTrigger);
+      const holders = await getTokenHolders(searchTrigger);
+      
+      return {
         info: {
           name: info.name,
           symbol: info.symbol,
           total_supply: info.total_supply,
           decimals: info.decimals
-        }
-      }));
+        },
+        holders: holders.holders
+      };
+    },
+    enabled: !!searchTrigger,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    cacheTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+  });
 
-      console.log('Fetching token holders...');
-      const response = await getTokenHolders(tokenId);
-      console.log('Received token holders:', response.holders.length);
-      
-      setData(prev => ({
-        ...prev,
-        holders: response.holders,
-        loading: false
-      }));
-    } catch (error: any) {
-      console.error('Error in handleSearch:', error.response?.data || error);
-      setData(prev => ({
-        ...prev,
-        error: error.response?.data?.error || 'Error fetching token data. Please check the token ID and try again.',
-        loading: false
-      }));
+  const handleSearch = () => {
+    if (!tokenId.trim()) {
+      return;
     }
+    setSearchTrigger(tokenId);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -69,11 +53,9 @@ export default function Home() {
 
   const formatBalance = (balance: string, decimals: number) => {
     try {
-      // Convert balance to number and handle decimals
       const value = Number(balance);
       if (isNaN(value)) return '0';
       
-      // Format with proper decimal places
       const formatted = value.toLocaleString(undefined, {
         minimumFractionDigits: 0,
         maximumFractionDigits: decimals
@@ -105,14 +87,14 @@ export default function Home() {
             />
             <button
               onClick={handleSearch}
-              disabled={data.loading}
+              disabled={isLoading}
               className={`px-6 py-2 rounded-lg text-base font-medium text-white transition-colors ${
-                data.loading 
+                isLoading 
                   ? 'bg-gray-700 cursor-not-allowed' 
                   : 'bg-gray-800 hover:bg-gray-700'
               }`}
             >
-              {data.loading ? (
+              {isLoading ? (
                 <span className="inline-flex items-center">
                   Searching<span className="loading-dots"></span>
                 </span>
@@ -122,7 +104,7 @@ export default function Home() {
             </button>
           </div>
 
-          {data.loading && (
+          {isLoading && (
             <div className="text-center py-8">
               <p className="text-base text-gray-400">
                 Keep your shirt on, I am sorting through a lot of information<span className="loading-dots"></span>
@@ -130,14 +112,14 @@ export default function Home() {
             </div>
           )}
 
-          {data.error && (
+          {error && (
             <div className="border-2 border-red-300 bg-red-50 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
               <strong className="font-bold">Error: </strong>
-              <span className="block sm:inline">{data.error}</span>
+              <span className="block sm:inline">{error.message}</span>
             </div>
           )}
 
-          {data.info && !data.loading && (
+          {data && !isLoading && (
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8 shadow-sm">
               <div className="flex items-baseline gap-3 mb-4">
                 <h2 className="text-xl font-medium text-gray-200">{data.info.name}</h2>
@@ -148,7 +130,7 @@ export default function Home() {
             </div>
           )}
 
-          {data.holders.length > 0 && !data.loading && (
+          {data && data.holders.length > 0 && !isLoading && (
             <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden shadow-sm">
               <table className="token-table">
                 <thead>
@@ -180,10 +162,10 @@ export default function Home() {
                         )}
                       </td>
                       <td className="token-balance text-right">
-                        {Number(holder.balance).toLocaleString()}
+                        {formatBalance(holder.balance, data.info.decimals)}
                       </td>
                       <td className="token-share text-right">
-                        {holder.percentage.toFixed(2)}%
+                        {(holder.balance / data.info.total_supply * 100).toFixed(2)}%
                       </td>
                     </tr>
                   ))}

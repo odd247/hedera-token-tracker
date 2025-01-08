@@ -1,6 +1,18 @@
 import axios from 'axios';
+import pThrottle from 'p-throttle';
 
 const BASE_URL = '/api';
+const MIRROR_NODE_URL = 'https://mainnet-public.mirrornode.hedera.com';
+
+// Throttle API calls to 5 requests per second
+const throttle = pThrottle({
+  limit: 5,
+  interval: 1000
+});
+
+const throttledGet = throttle(async (url: string) => {
+  return await axios.get(url);
+});
 
 export interface TokenHolder {
   account: string;
@@ -49,7 +61,7 @@ function formatTokenId(tokenId: string): string {
 export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
   try {
     const formattedTokenId = formatTokenId(tokenId);
-    const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}`;
+    const url = `${MIRROR_NODE_URL}/api/v1/tokens/${formattedTokenId}`;
     console.log('%c[API Call] Fetching token info from:', 'color: #4CAF50; font-weight: bold;', url);
     const response = await axios.get(url);
     console.log('%c[Token Info] Response:', 'color: #4CAF50; font-weight: bold;', response.data);
@@ -74,27 +86,34 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
     console.log('%c[Token Holders] Starting fetch...', 'color: #2196F3; font-weight: bold;');
     
     const formattedTokenId = formatTokenId(tokenId);
-    let url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances`;
+    let url = `${MIRROR_NODE_URL}/api/v1/tokens/${formattedTokenId}/balances?limit=100`;
     console.log('%c[API Call] Fetching token holders from:', 'color: #2196F3; font-weight: bold;', url);
     
     let allBalances: ApiBalance[] = [];
     let hasNextPage = true;
+    let pageCount = 0;
+    const MAX_PAGES = 50; // Limit to 5000 holders (50 pages * 100 per page)
 
-    while (hasNextPage) {
+    while (hasNextPage && pageCount < MAX_PAGES) {
       console.log('%c[API Call] Fetching page:', 'color: #2196F3; font-weight: bold;', url);
-      const response = await axios.get<{ balances: ApiBalance[], links?: { next?: string } }>(url);
+      const response = await throttledGet(url);
+      pageCount++;
       
       if (!response.data || !Array.isArray(response.data.balances)) {
         console.error('%c[Error] Invalid response format:', 'color: #f44336; font-weight: bold;', response.data);
         throw new Error('Invalid response format from Hedera API');
       }
 
-      allBalances = [...allBalances, ...response.data.balances];
-      console.log('%c[API Response] Got balances:', 'color: #2196F3; font-weight: bold;', response.data.balances.length);
+      const validBalances = response.data.balances.filter(balance => 
+        Number(balance.balance) > 0 && // Only include non-zero balances
+        balance.account !== '0.0.98' // Filter out null account
+      );
+      
+      allBalances = [...allBalances, ...validBalances];
+      console.log('%c[API Response] Got balances:', 'color: #2196F3; font-weight: bold;', validBalances.length);
 
-      // Check for next page
-      if (response.data.links?.next) {
-        url = `https://mainnet-public.mirrornode.hedera.com${response.data.links.next}`;
+      if (response.data.links?.next && pageCount < MAX_PAGES) {
+        url = `${MIRROR_NODE_URL}${response.data.links.next}&limit=100`;
       } else {
         hasNextPage = false;
       }
@@ -112,29 +131,8 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
       totalSupply = '0';
     }
 
-    console.log('%c[Processing] Filtering balances...', 'color: #2196F3; font-weight: bold;');
-    const validBalances = allBalances.filter((balance): balance is ApiBalance => {
-      const isValid = balance && 
-        typeof balance.account === 'string' && 
-        (typeof balance.balance === 'string' || typeof balance.balance === 'number') &&
-        typeof balance.decimals === 'number';
-      
-      if (!isValid) {
-        console.log('%c[Invalid Balance]', 'color: #FFC107; font-weight: bold;', {
-          balance,
-          isValidAccount: typeof balance.account === 'string',
-          isValidBalance: typeof balance.balance === 'string' || typeof balance.balance === 'number',
-          isValidDecimals: typeof balance.decimals === 'number'
-        });
-      }
-      
-      return isValid;
-    });
-
-    console.log('%c[Valid Balances] Count:', 'color: #2196F3; font-weight: bold;', validBalances.length);
-
     console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
-    const holders = validBalances
+    const holders = allBalances
       .map((balance): TokenHolder => {
         // Convert balance to actual value using decimals
         const rawBalance = Number(balance.balance);
@@ -169,7 +167,7 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
     const result: TokenHoldersResponse = {
       holders,
       stats: {
-        totalAccounts: validBalances.length.toString(),
+        totalAccounts: allBalances.length.toString(),
         accountsAboveOne: holders.length
       }
     };
