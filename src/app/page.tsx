@@ -165,7 +165,7 @@ export default function Home() {
                         {formatBalance(holder.balance, data.info.decimals)}
                       </td>
                       <td className="token-share text-right">
-                        {(holder.balance / data.info.total_supply * 100).toFixed(2)}%
+                        {((Number(holder.balance) / Number(data.info.total_supply)) * 100).toFixed(2)}%
                       </td>
                     </tr>
                   ))}
