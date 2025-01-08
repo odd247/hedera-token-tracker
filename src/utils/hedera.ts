@@ -104,7 +104,7 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
         throw new Error('Invalid response format from Hedera API');
       }
 
-      const validBalances = response.data.balances.filter(balance => 
+      const validBalances = response.data.balances.filter((balance: ApiBalance) => 
         Number(balance.balance) > 0 && // Only include non-zero balances
         balance.account !== '0.0.98' // Filter out null account
       );
@@ -149,7 +149,7 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
         };
       })
       // Filter out balances less than 1
-      .filter(holder => Number(holder.balance) >= 1)
+      .filter((holder: TokenHolder) => Number(holder.balance) >= 1)
       // Sort by balance in descending order
       .sort((a, b) => Number(b.balance) - Number(a.balance))
       // Take top 50 holders
