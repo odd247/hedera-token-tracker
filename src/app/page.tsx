@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { getTokenHolders, getTokenInfo, TokenHolder, TokenInfo } from '@/utils/hedera';
+import { useState, useEffect } from 'react';
+import { getTokenHolders, getTokenInfo, TokenHolder, TokenInfo, checkLPStatus } from '@/utils/hedera';
 import { useQuery } from '@tanstack/react-query';
 
 interface TokenData {
@@ -14,8 +14,9 @@ interface TokenData {
 export default function Home() {
   const [tokenId, setTokenId] = useState('');
   const [searchTrigger, setSearchTrigger] = useState('');
+  const [lpStatuses, setLpStatuses] = useState<{ [key: string]: boolean }>({});
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['token', searchTrigger],
     queryFn: async () => {
       if (!searchTrigger) return null;
@@ -37,6 +38,26 @@ export default function Home() {
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
+
+  useEffect(() => {
+    const checkTopHoldersLPStatus = async () => {
+      if (data?.holders && data.holders.length > 0) {
+        const topHolders = data.holders.slice(0, 10);
+        const newStatuses: { [key: string]: boolean } = {};
+
+        await Promise.all(
+          topHolders.map(async (holder) => {
+            const isLP = await checkLPStatus(holder.account);
+            newStatuses[holder.account] = isLP;
+          })
+        );
+
+        setLpStatuses(newStatuses);
+      }
+    };
+
+    checkTopHoldersLPStatus();
+  }, [data?.holders]);
 
   const handleSearch = () => {
     if (!tokenId.trim()) {
@@ -154,6 +175,9 @@ export default function Home() {
                         )}
                         {holder.account === '0.0.3158042' && (
                           <span className="ml-8 text-sm text-gray-500">(DaVinciGraph Burn)</span>
+                        )}
+                        {lpStatuses[holder.account] && (
+                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
                         )}
                       </td>
                       <td className="token-balance text-right">
