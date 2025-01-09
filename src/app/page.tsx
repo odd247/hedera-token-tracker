@@ -96,7 +96,8 @@ export default function Home() {
             >
               {isLoading ? (
                 <span className="inline-flex items-center">
-                  Searching<span className="loading-dots"></span>
+                  Keep your shirt on, I am sorting through a lot of information (older token = more data)
+                  <span className="loading-dots ml-1"></span>
                 </span>
               ) : (
                 'Search'
@@ -159,6 +160,9 @@ export default function Home() {
                         )}
                         {holder.account === '0.0.3158042' && (
                           <span className="ml-8 text-sm text-gray-500">(DaVinciGraph Burn)</span>
+                        )}
+                        {holder.account === '0.0.6126395' && (
+                          <span className="ml-8 text-sm text-gray-500">(SaucerSwapLP)</span>
                         )}
                       </td>
                       <td className="token-balance text-right">

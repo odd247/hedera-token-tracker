@@ -39,7 +39,16 @@ main {
   content: '';
   display: inline-block;
   width: 24px;
+  text-align: left;
   animation: ellipsis 1.5s infinite steps(4);
+  font-weight: bold;
+  color: #9ca3af;
+}
+
+/* Make the button wider to accommodate the longer text */
+button {
+  min-width: max-content;
+  white-space: nowrap;
 }
 
 /* Table styles */
