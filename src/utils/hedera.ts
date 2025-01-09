@@ -108,14 +108,27 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
   try {
     console.log('%c[Token Holders] Starting fetch...', 'color: #2196F3; font-weight: bold;');
     
+    // Get token info first to know decimals
+    let tokenInfo;
+    try {
+      tokenInfo = await getTokenInfo(tokenId);
+      console.log('%c[Token Info]', 'color: #2196F3; font-weight: bold;', {
+        decimals: tokenInfo.decimals,
+        totalSupply: tokenInfo.total_supply
+      });
+    } catch (error) {
+      console.error('%c[Error] Failed to fetch token info:', 'color: #f44336; font-weight: bold;', error);
+      throw error;
+    }
+    
     const formattedTokenId = formatTokenId(tokenId);
-    let url = `${MIRROR_NODE_URL}/api/v1/tokens/${formattedTokenId}/balances?limit=100`;
+    let url = `${MIRROR_NODE_URL}/api/v1/tokens/${formattedTokenId}/balances?limit=100&order=desc`;
     console.log('%c[API Call] Initial URL:', 'color: #2196F3; font-weight: bold;', url);
     
     let allBalances: ApiBalance[] = [];
     let hasNextPage = true;
     let pageCount = 0;
-    const MAX_PAGES = 100; // Reduced to prevent rate limiting
+    const MAX_PAGES = 500; // Increased to get more holders
     
     try {
       while (hasNextPage && pageCount < MAX_PAGES) {
@@ -128,13 +141,24 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
           throw new Error('Invalid response format from Hedera API');
         }
 
-        const validBalances = response.data.balances.filter((balance: ApiBalance) => 
-          Number(balance.balance) > 0 && // Only include non-zero balances
-          balance.account !== '0.0.98' // Filter out null account
-        );
+        // Add decimals to each balance object
+        const balancesWithDecimals = response.data.balances.map((balance: any) => ({
+          ...balance,
+          decimals: tokenInfo.decimals
+        }));
+
+        const validBalances = balancesWithDecimals.filter((balance: ApiBalance) => {
+          const rawBalance = Number(balance.balance);
+          const adjustedBalance = rawBalance / Math.pow(10, balance.decimals);
+          return adjustedBalance > 0 && balance.account !== '0.0.98';
+        });
         
         allBalances = [...allBalances, ...validBalances];
-        console.log('%c[API Response] Got valid balances:', 'color: #2196F3; font-weight: bold;', validBalances.length);
+        console.log('%c[API Response] Got valid balances:', 'color: #2196F3; font-weight: bold;', {
+          page: pageCount,
+          newBalances: validBalances.length,
+          totalSoFar: allBalances.length
+        });
 
         // Check for next page
         if (response.data.links?.next && pageCount < MAX_PAGES) {
@@ -156,16 +180,6 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
 
     console.log('%c[API Response] Total balances collected:', 'color: #2196F3; font-weight: bold;', allBalances.length);
 
-    let totalSupply = '0';
-    try {
-      const infoResponse = await getTokenInfo(tokenId);
-      totalSupply = infoResponse.total_supply;
-      console.log('%c[Total Supply]', 'color: #2196F3; font-weight: bold;', totalSupply);
-    } catch (error) {
-      console.error('%c[Error] Failed to fetch total supply:', 'color: #f44336; font-weight: bold;', error);
-      totalSupply = '0';
-    }
-
     console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
     const holders = allBalances
       .map((balance): TokenHolder => {
@@ -173,7 +187,7 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
         const adjustedBalance = rawBalance / Math.pow(10, balance.decimals);
         const balanceStr = adjustedBalance.toString();
         
-        const totalSupplyNum = Number(totalSupply);
+        const totalSupplyNum = Number(tokenInfo.total_supply);
         const percentage = totalSupplyNum > 0 ? (adjustedBalance * 100) / totalSupplyNum : 0;
         
         return {
@@ -184,6 +198,22 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
       })
       .filter((holder: TokenHolder) => Number(holder.balance) >= 100)
       .sort((a, b) => Number(b.balance) - Number(a.balance));
+
+    // Log some sample holders for verification
+    console.log('%c[Sample Holders]', 'color: #2196F3; font-weight: bold;', 
+      holders.slice(0, 5).map(h => ({
+        account: h.account,
+        balance: h.balance,
+        percentage: h.percentage
+      }))
+    );
+
+    // Specifically check for the wallet we're missing
+    const missingWallet = holders.find(h => h.account === '0.0.2028553');
+    console.log('%c[Missing Wallet Check]', 'color: #2196F3; font-weight: bold;', {
+      found: !!missingWallet,
+      details: missingWallet
+    });
 
     return {
       holders,
