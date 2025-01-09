@@ -345,20 +345,30 @@ export async function checkLPStatus(accountId: string): Promise<boolean> {
 
   try {
     // Check if it's a contract
-    const isContract = await isContractAccount(accountId);
+    const url = `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}`;
+    const response = await throttledGet(url);
+    console.log(`Account ${accountId} response:`, response.data);
+    const isContract = response.data?.type === 'CONTRACT';
+    console.log(`Account ${accountId} is contract:`, isContract);
+
     if (!isContract) {
       lpStatusCache[accountId] = false;
       return false;
     }
 
     // Get tokens held by the account
-    const tokens = await getAccountTokens(accountId);
+    const tokensUrl = `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}/tokens`;
+    const tokensResponse = await throttledGet(tokensUrl);
+    console.log(`Account ${accountId} tokens:`, tokensResponse.data);
+    const tokens = tokensResponse.data?.tokens || [];
     
     // Check if any token name starts with 'ssLP-'
-    const hasLPToken = tokens.some((token: any) => 
-      token.symbol && token.symbol.startsWith('ssLP-')
-    );
+    const hasLPToken = tokens.some((token: any) => {
+      console.log(`Token for ${accountId}:`, token);
+      return token.symbol && token.symbol.startsWith('ssLP-');
+    });
 
+    console.log(`Account ${accountId} is LP:`, hasLPToken);
     lpStatusCache[accountId] = hasLPToken;
     return hasLPToken;
   } catch (error) {
