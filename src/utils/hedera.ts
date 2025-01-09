@@ -347,16 +347,10 @@ export async function checkLPStatus(accountId: string): Promise<boolean> {
     // Check if it's a contract
     const url = `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}`;
     const response = await throttledGet(url);
-    console.log(`Account ${accountId} response:`, response.data);
+    console.log(`Account ${accountId} full response:`, response.data);
     
-    // Check if account has a contract ID, which indicates it's a contract
-    const isContract = response.data?.contract_id || response.data?.key?.type === 'CONTRACT';
-    console.log(`Account ${accountId} is contract:`, isContract);
-
-    if (!isContract) {
-      lpStatusCache[accountId] = false;
-      return false;
-    }
+    // For now, assume all accounts could be contracts until we figure out the correct property
+    const isContract = true;
 
     // Get tokens held by the account
     const tokensUrl = `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}/tokens`;
