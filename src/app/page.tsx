@@ -101,7 +101,7 @@ export default function Home() {
           {isLoading && (
             <div className="text-center py-8">
               <p className="text-base text-gray-400">
-                Keep your shirt on, I am sorting through a lot of information (older token = more data = longer wait)
+                Keep your shirt on, I'm sorting through a lot of info (more holders = more data = more wait)
                 <span className="loading-dots ml-1"></span>
               </p>
             </div>
@@ -156,7 +156,22 @@ export default function Home() {
                           <span className="ml-8 text-sm text-gray-500">(DaVinciGraph Burn)</span>
                         )}
                         {holder.account === '0.0.6126395' && (
-                          <span className="ml-8 text-sm text-gray-500">(SaucerSwapLP)</span>
+                          <span className="ml-8 text-sm text-gray-500">(ssLP)</span>
+                        )}
+                         {holder.account === '0.0.7958474' && (
+                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
+                        )}
+                         {holder.account === '0.0.8056482' && (
+                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
+                        )}
+                         {holder.account === '0.0.8040576' && (
+                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
+                        )}
+                        {holder.account === '0.0.7975705' && (
+                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
+                        )}
+                         {holder.account === '0.0.7976068' && (
+                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
                         )}
                       </td>
                       <td className="token-balance text-right">
@@ -174,7 +189,7 @@ export default function Home() {
         </div>
       </div>
       <footer className="w-full p-4 text-center text-gray-500">
-        brought to you by <a href="https://x.com/odd247" target="_blank" className="hover:underline">odd</a> enterprises
+        brought to you by <a href="https://x.com/__o__d__d__" target="_blank" className="hover:underline">odd</a> enterprises
       </footer>
     </main>
   );
