@@ -94,16 +94,18 @@ export default function Home() {
                   : 'bg-gray-800 hover:bg-gray-700'
               }`}
             >
-              {isLoading ? (
-                <span className="inline-flex items-center">
-                  Keep your shirt on, I am sorting through a lot of information (older token = more data)
-                  <span className="loading-dots ml-1"></span>
-                </span>
-              ) : (
-                'Search'
-              )}
+              {isLoading ? 'Searching...' : 'Search'}
             </button>
           </div>
+
+          {isLoading && (
+            <div className="text-center py-8">
+              <p className="text-base text-gray-400">
+                Keep your shirt on, I am sorting through a lot of information (older token = more data)
+                <span className="loading-dots ml-1"></span>
+              </p>
+            </div>
+          )}
 
           {error && (
             <div className="border-2 border-red-300 bg-red-50 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
