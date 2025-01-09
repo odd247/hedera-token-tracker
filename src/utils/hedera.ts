@@ -35,6 +35,7 @@ export interface TokenHolder {
   account: string;
   balance: string;
   percentage: number;
+  isLP?: boolean;
 }
 
 export interface TokenInfo {
@@ -298,5 +299,76 @@ function formatBalance(balance: string, decimals: number): string {
   } catch (error) {
     console.error('%c[Error] Failed to format balance:', 'color: #f44336; font-weight: bold;', error);
     return balance;
+  }
+}
+
+// Cache for LP status checks
+const lpStatusCache: { [key: string]: boolean } = {};
+
+interface AccountInfo {
+  balance: {
+    balance: number;
+    timestamp: string;
+    tokens: any[];
+  };
+  account: string;
+  type: string;
+}
+
+async function isContractAccount(accountId: string): Promise<boolean> {
+  try {
+    const url = `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}`;
+    const response = await throttledGet(url);
+    return response.data?.type === 'CONTRACT';
+  } catch (error) {
+    console.error('Error checking contract status:', error);
+    return false;
+  }
+}
+
+async function getAccountTokens(accountId: string): Promise<any[]> {
+  try {
+    const url = `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}/tokens`;
+    const response = await throttledGet(url);
+    return response.data?.tokens || [];
+  } catch (error) {
+    console.error('Error fetching account tokens:', error);
+    return [];
+  }
+}
+
+export async function checkLPStatus(accountId: string): Promise<boolean> {
+  // Check cache first
+  if (lpStatusCache[accountId] !== undefined) {
+    return lpStatusCache[accountId];
+  }
+
+  try {
+    // Check if it's a contract
+    const isContract = await isContractAccount(accountId);
+    if (!isContract) {
+      lpStatusCache[accountId] = false;
+      return false;
+    }
+
+    // Get tokens held by the account
+    const tokens = await getAccountTokens(accountId);
+    
+    // Check if account holds exactly 3 tokens
+    if (tokens.length !== 3) {
+      lpStatusCache[accountId] = false;
+      return false;
+    }
+
+    // Check if any token name starts with 'ssLP-'
+    const hasLPToken = tokens.some((token: any) => 
+      token.token_id && token.symbol && token.symbol.startsWith('ssLP-')
+    );
+
+    lpStatusCache[accountId] = hasLPToken;
+    return hasLPToken;
+  } catch (error) {
+    console.error('Error checking LP status:', error);
+    return false;
   }
 }

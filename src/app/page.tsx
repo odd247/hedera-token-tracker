@@ -155,24 +155,6 @@ export default function Home() {
                         {holder.account === '0.0.3158042' && (
                           <span className="ml-8 text-sm text-gray-500">(DaVinciGraph Burn)</span>
                         )}
-                        {holder.account === '0.0.6126395' && (
-                          <span className="ml-8 text-sm text-gray-500">(ssLP)</span>
-                        )}
-                         {holder.account === '0.0.7958474' && (
-                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
-                        )}
-                         {holder.account === '0.0.8056482' && (
-                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
-                        )}
-                         {holder.account === '0.0.8040576' && (
-                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
-                        )}
-                        {holder.account === '0.0.7975705' && (
-                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
-                        )}
-                         {holder.account === '0.0.7976068' && (
-                          <span className="ml-8 text-sm text-gray-500">(SaucerSwap LP)</span>
-                        )}
                       </td>
                       <td className="token-balance text-right">
                         {formatBalance(holder.balance, data.info.decimals)}
