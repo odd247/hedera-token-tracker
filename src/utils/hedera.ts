@@ -42,20 +42,26 @@ interface ApiBalance {
 }
 
 function formatTokenId(tokenId: string): string {
-  // Remove any spaces and convert to lowercase
+  if (!tokenId) {
+    throw new Error('Token ID is required');
+  }
+
   tokenId = tokenId.trim().toLowerCase();
   
-  // If it's already in shard.realm.num format, return as is
   if (tokenId.includes('.')) {
+    // Validate shard.realm.num format
+    const parts = tokenId.split('.');
+    if (parts.length !== 3 || !parts.every(part => /^\d+$/.test(part))) {
+      throw new Error('Invalid token ID format. Expected format: shard.realm.number');
+    }
     return tokenId;
   }
   
-  // If it's just a number, convert to 0.0.number format
   if (/^\d+$/.test(tokenId)) {
     return `0.0.${tokenId}`;
   }
   
-  return tokenId;
+  throw new Error('Invalid token ID format. Expected a number or shard.realm.number format');
 }
 
 export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
