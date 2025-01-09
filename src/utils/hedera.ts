@@ -92,7 +92,7 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
     let allBalances: ApiBalance[] = [];
     let hasNextPage = true;
     let pageCount = 0;
-    const MAX_PAGES = 50; // Limit to 5000 holders (50 pages * 100 per page)
+    const MAX_PAGES = 200; // Increased to get more holders
 
     while (hasNextPage && pageCount < MAX_PAGES) {
       console.log('%c[API Call] Fetching page:', 'color: #2196F3; font-weight: bold;', url);
@@ -148,12 +148,10 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
           percentage
         };
       })
-      // Filter out balances less than 1
-      .filter((holder: TokenHolder) => Number(holder.balance) >= 1)
+      // Filter holders with more than 100 tokens
+      .filter((holder: TokenHolder) => Number(holder.balance) >= 100)
       // Sort by balance in descending order
-      .sort((a, b) => Number(b.balance) - Number(a.balance))
-      // Take top 50 holders
-      .slice(0, 50);
+      .sort((a, b) => Number(b.balance) - Number(a.balance));
 
     console.log('%c[Final Holders] Count:', 'color: #2196F3; font-weight: bold;', holders.length);
     holders.forEach(holder => {
