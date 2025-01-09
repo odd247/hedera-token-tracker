@@ -42,16 +42,21 @@ export default function Home() {
   useEffect(() => {
     const checkTopHoldersLPStatus = async () => {
       if (data?.holders && data.holders.length > 0) {
+        console.log('Checking top holders for LP status...');
         const topHolders = data.holders.slice(0, 10);
+        console.log('Top 10 holders:', topHolders);
         const newStatuses: { [key: string]: boolean } = {};
 
         await Promise.all(
           topHolders.map(async (holder) => {
+            console.log('Checking holder:', holder.account);
             const isLP = await checkLPStatus(holder.account);
+            console.log('Is LP result:', holder.account, isLP);
             newStatuses[holder.account] = isLP;
           })
         );
 
+        console.log('Final LP statuses:', newStatuses);
         setLpStatuses(newStatuses);
       }
     };
