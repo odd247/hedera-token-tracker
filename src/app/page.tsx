@@ -105,14 +105,6 @@ export default function Home() {
             </button>
           </div>
 
-          {isLoading && (
-            <div className="text-center py-8">
-              <p className="text-base text-gray-400">
-                Keep your shirt on, I am sorting through a lot of information<span className="loading-dots"></span>
-              </p>
-            </div>
-          )}
-
           {error && (
             <div className="border-2 border-red-300 bg-red-50 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
               <strong className="font-bold">Error: </strong>
