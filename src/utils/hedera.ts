@@ -4,14 +4,31 @@ import pThrottle from 'p-throttle';
 const BASE_URL = '/api';
 const MIRROR_NODE_URL = 'https://mainnet-public.mirrornode.hedera.com';
 
-// Throttle API calls to 5 requests per second
+// More conservative rate limiting: 3 requests per second
 const throttle = pThrottle({
-  limit: 5,
+  limit: 3,
   interval: 1000
 });
 
+// Configure axios defaults
+axios.defaults.timeout = 30000; // 30 second timeout
+axios.defaults.headers.common['Accept'] = 'application/json';
+
 const throttledGet = throttle(async (url: string) => {
-  return await axios.get(url);
+  try {
+    console.log('%c[API Call] Making request to:', 'color: #2196F3; font-weight: bold;', url);
+    const response = await axios.get(url);
+    console.log('%c[API Response] Status:', 'color: #2196F3; font-weight: bold;', response.status);
+    return response;
+  } catch (error: any) {
+    console.error('%c[API Error] Failed request:', 'color: #f44336; font-weight: bold;', {
+      url,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    throw error;
+  }
 });
 
 export interface TokenHolder {
@@ -69,7 +86,7 @@ export async function getTokenInfo(tokenId: string): Promise<TokenInfo> {
     const formattedTokenId = formatTokenId(tokenId);
     const url = `${MIRROR_NODE_URL}/api/v1/tokens/${formattedTokenId}`;
     console.log('%c[API Call] Fetching token info from:', 'color: #4CAF50; font-weight: bold;', url);
-    const response = await axios.get(url);
+    const response = await throttledGet(url);
     console.log('%c[Token Info] Response:', 'color: #4CAF50; font-weight: bold;', response.data);
     
     const decimals = Number(response.data.decimals);
@@ -93,39 +110,51 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
     
     const formattedTokenId = formatTokenId(tokenId);
     let url = `${MIRROR_NODE_URL}/api/v1/tokens/${formattedTokenId}/balances?limit=100`;
-    console.log('%c[API Call] Fetching token holders from:', 'color: #2196F3; font-weight: bold;', url);
+    console.log('%c[API Call] Initial URL:', 'color: #2196F3; font-weight: bold;', url);
     
     let allBalances: ApiBalance[] = [];
     let hasNextPage = true;
     let pageCount = 0;
-    const MAX_PAGES = 200; // Increased to get more holders
+    const MAX_PAGES = 100; // Reduced to prevent rate limiting
+    
+    try {
+      while (hasNextPage && pageCount < MAX_PAGES) {
+        console.log('%c[API Call] Fetching page:', 'color: #2196F3; font-weight: bold;', pageCount + 1);
+        const response = await throttledGet(url);
+        pageCount++;
+        
+        if (!response.data || !Array.isArray(response.data.balances)) {
+          console.error('%c[Error] Invalid response format:', 'color: #f44336; font-weight: bold;', response.data);
+          throw new Error('Invalid response format from Hedera API');
+        }
 
-    while (hasNextPage && pageCount < MAX_PAGES) {
-      console.log('%c[API Call] Fetching page:', 'color: #2196F3; font-weight: bold;', url);
-      const response = await throttledGet(url);
-      pageCount++;
-      
-      if (!response.data || !Array.isArray(response.data.balances)) {
-        console.error('%c[Error] Invalid response format:', 'color: #f44336; font-weight: bold;', response.data);
-        throw new Error('Invalid response format from Hedera API');
+        const validBalances = response.data.balances.filter((balance: ApiBalance) => 
+          Number(balance.balance) > 0 && // Only include non-zero balances
+          balance.account !== '0.0.98' // Filter out null account
+        );
+        
+        allBalances = [...allBalances, ...validBalances];
+        console.log('%c[API Response] Got valid balances:', 'color: #2196F3; font-weight: bold;', validBalances.length);
+
+        // Check for next page
+        if (response.data.links?.next && pageCount < MAX_PAGES) {
+          url = `${MIRROR_NODE_URL}${response.data.links.next}`;
+          // Add a small delay between pages to prevent rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } else {
+          hasNextPage = false;
+        }
       }
-
-      const validBalances = response.data.balances.filter((balance: ApiBalance) => 
-        Number(balance.balance) > 0 && // Only include non-zero balances
-        balance.account !== '0.0.98' // Filter out null account
-      );
-      
-      allBalances = [...allBalances, ...validBalances];
-      console.log('%c[API Response] Got balances:', 'color: #2196F3; font-weight: bold;', validBalances.length);
-
-      if (response.data.links?.next && pageCount < MAX_PAGES) {
-        url = `${MIRROR_NODE_URL}${response.data.links.next}&limit=100`;
-      } else {
-        hasNextPage = false;
-      }
+    } catch (error: any) {
+      console.error('%c[Pagination Error]:', 'color: #f44336; font-weight: bold;', {
+        page: pageCount,
+        error: error.message,
+        response: error.response?.data
+      });
+      throw error;
     }
 
-    console.log('%c[API Response] Total balances:', 'color: #2196F3; font-weight: bold;', allBalances.length);
+    console.log('%c[API Response] Total balances collected:', 'color: #2196F3; font-weight: bold;', allBalances.length);
 
     let totalSupply = '0';
     try {
@@ -140,7 +169,6 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
     console.log('%c[Processing] Calculating percentages...', 'color: #2196F3; font-weight: bold;');
     const holders = allBalances
       .map((balance): TokenHolder => {
-        // Convert balance to actual value using decimals
         const rawBalance = Number(balance.balance);
         const adjustedBalance = rawBalance / Math.pow(10, balance.decimals);
         const balanceStr = adjustedBalance.toString();
@@ -154,21 +182,10 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
           percentage
         };
       })
-      // Filter holders with more than 100 tokens
       .filter((holder: TokenHolder) => Number(holder.balance) >= 100)
-      // Sort by balance in descending order
       .sort((a, b) => Number(b.balance) - Number(a.balance));
 
-    console.log('%c[Final Holders] Count:', 'color: #2196F3; font-weight: bold;', holders.length);
-    holders.forEach(holder => {
-      console.log('%c[Holder]', 'color: #2196F3;', {
-        account: holder.account,
-        balance: holder.balance,
-        percentage: holder.percentage + '%'
-      });
-    });
-
-    const result: TokenHoldersResponse = {
+    return {
       holders,
       stats: {
         totalAccounts: allBalances.length.toString(),
@@ -176,11 +193,12 @@ export async function getTokenHolders(tokenId: string): Promise<TokenHoldersResp
       }
     };
 
-    console.log('%c[Final Result]', 'color: #4CAF50; font-weight: bold;', result);
-    return result;
-
   } catch (error: any) {
-    console.error('%c[Error] Failed to fetch token holders:', 'color: #f44336; font-weight: bold;', error.response?.data || error.message);
+    console.error('%c[Error] Failed to fetch token holders:', 'color: #f44336; font-weight: bold;', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
     throw error;
   }
 }
