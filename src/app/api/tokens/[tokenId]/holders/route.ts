@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getTokenHolders, getTokenInfo } from '@/utils/hedera';
 import axios from 'axios';
 
 export async function GET(
@@ -6,59 +7,93 @@ export async function GET(
   { params }: { params: { tokenId: string } }
 ) {
   const tokenId = params.tokenId;
-  const { searchParams } = new URL(request.url);
-  const limit = searchParams.get('limit') || '50';
 
   if (!tokenId) {
-    return NextResponse.json({ error: 'Token ID is required' }, { status: 400 });
+    return NextResponse.json({ error: 'Token ID is required' }, { 
+      status: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    });
   }
 
   try {
-    const formattedTokenId = formatTokenId(tokenId);
-    const url = `https://mainnet-public.mirrornode.hedera.com/api/v1/tokens/${formattedTokenId}/balances?limit=${limit}&order=desc`;
-    const response = await axios.get(url);
-    
-    const holders = response.data.balances.map((balance: any) => ({
-      account: balance.account,
-      balance: balance.balance,
-      percentage: calculatePercentage(balance.balance, response.data.total_supply)
-    }));
+    const startTime = Date.now();
+    const [info, holders] = await Promise.all([
+      getTokenInfo(tokenId),
+      getTokenHolders(tokenId)
+    ]);
+    const duration = Date.now() - startTime;
+    console.log(`API call duration: ${duration} ms`);
 
     return NextResponse.json({
-      holders,
-      stats: {
-        totalAccounts: response.data.balances.length.toString(),
-        accountsAboveOne: holders.filter((h: any) => Number(h.balance) > 1).length
+      info,
+      holders: holders.holders
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
       }
     });
   } catch (error: any) {
-    console.error('Error fetching token holders:', error.response?.data || error.message);
-    return NextResponse.json(
-      { error: error.response?.data?.message || 'Error fetching token holders' },
-      { status: error.response?.status || 500 }
-    );
+    console.error('Error fetching token data:', error.response?.data || error.message);
+    
+    // Handle specific error cases
+    if (error.response?.status === 404) {
+      return NextResponse.json({ error: 'Token not found' }, { 
+        status: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      });
+    }
+    
+    if (error.response?.status === 400) {
+      return NextResponse.json({ error: 'Invalid token ID format' }, { 
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      });
+    }
+    
+    if (error.response?.status === 429) {
+      return NextResponse.json({ error: 'Rate limit exceeded. Please try again later.' }, { 
+        status: 429,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      });
+    }
+    
+    return NextResponse.json({ error: 'Internal server error' }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    });
   }
 }
 
-function formatTokenId(tokenId: string): string {
-  tokenId = tokenId.trim().toLowerCase();
-  
-  if (tokenId.includes('.')) {
-    return tokenId;
-  }
-  
-  if (/^\d+$/.test(tokenId)) {
-    return `0.0.${tokenId}`;
-  }
-  
-  return tokenId;
+export async function OPTIONS() {
+  return NextResponse.json({}, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    }
+  });
 }
 
-function calculatePercentage(balance: string, totalSupply: string): number {
-  const balanceNum = BigInt(balance);
-  const totalSupplyNum = BigInt(totalSupply);
-  
-  if (totalSupplyNum === BigInt(0)) return 0;
-  
-  return Number((balanceNum * BigInt(10000) / totalSupplyNum) / BigInt(100));
-}
+axios.defaults.timeout = 60000; // 60 second timeout
