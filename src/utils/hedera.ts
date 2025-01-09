@@ -346,8 +346,6 @@ export async function checkLPStatus(accountId: string): Promise<boolean> {
   try {
     // Check if it's a contract
     const isContract = await isContractAccount(accountId);
-    console.log(`Account ${accountId} contract status:`, isContract);
-    
     if (!isContract) {
       lpStatusCache[accountId] = false;
       return false;
@@ -355,22 +353,12 @@ export async function checkLPStatus(accountId: string): Promise<boolean> {
 
     // Get tokens held by the account
     const tokens = await getAccountTokens(accountId);
-    console.log(`Account ${accountId} tokens:`, tokens);
     
-    // Check if account holds exactly 3 tokens
-    if (tokens.length !== 3) {
-      console.log(`Account ${accountId} has ${tokens.length} tokens, not 3`);
-      lpStatusCache[accountId] = false;
-      return false;
-    }
-
     // Check if any token name starts with 'ssLP-'
-    const hasLPToken = tokens.some((token: any) => {
-      console.log(`Token symbol for ${accountId}:`, token.symbol);
-      return token.symbol && token.symbol.startsWith('ssLP-');
-    });
+    const hasLPToken = tokens.some((token: any) => 
+      token.symbol && token.symbol.startsWith('ssLP-')
+    );
 
-    console.log(`Account ${accountId} LP status:`, hasLPToken);
     lpStatusCache[accountId] = hasLPToken;
     return hasLPToken;
   } catch (error) {
