@@ -354,12 +354,24 @@ export async function checkLPStatus(accountId: string): Promise<boolean> {
     return lpStatusCache[accountId];
   }
 
+  // Skip known non-LP contracts
+  if (accountId === '0.0.2997798' || accountId === '0.0.3158042') {
+    lpStatusCache[accountId] = false;
+    return false;
+  }
+
   try {
     // Get tokens held by the account
     const tokensUrl = `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}/tokens`;
     const tokensResponse = await throttledGet(tokensUrl);
-    console.log(`Account ${accountId} tokens:`, tokensResponse.data);
     const tokens = tokensResponse.data?.tokens || [];
+    
+    // Check if account holds exactly 3 tokens
+    if (tokens.length !== 3) {
+      console.log(`Account ${accountId} has ${tokens.length} tokens, not 3`);
+      lpStatusCache[accountId] = false;
+      return false;
+    }
     
     // Get full token details for each token
     const tokenDetails = await Promise.all(
