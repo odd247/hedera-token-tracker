@@ -101,7 +101,7 @@ export default function Home() {
           {isLoading && (
             <div className="text-center py-8">
               <p className="text-base text-gray-400">
-                Keep your shirt on, I am sorting through a lot of information (older token = more data)
+                Keep your shirt on, I am sorting through a lot of information (older token = more data = longer wait)
                 <span className="loading-dots ml-1"></span>
               </p>
             </div>
