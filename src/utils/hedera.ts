@@ -337,6 +337,17 @@ async function getAccountTokens(accountId: string): Promise<any[]> {
   }
 }
 
+async function getTokenDetails(tokenId: string): Promise<any> {
+  try {
+    const url = `${MIRROR_NODE_URL}/api/v1/tokens/${tokenId}`;
+    const response = await throttledGet(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching token details:', error);
+    return null;
+  }
+}
+
 export async function checkLPStatus(accountId: string): Promise<boolean> {
   // Check cache first
   if (lpStatusCache[accountId] !== undefined) {
@@ -344,24 +355,24 @@ export async function checkLPStatus(accountId: string): Promise<boolean> {
   }
 
   try {
-    // Check if it's a contract
-    const url = `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}`;
-    const response = await throttledGet(url);
-    console.log(`Account ${accountId} full response:`, response.data);
-    
-    // For now, assume all accounts could be contracts until we figure out the correct property
-    const isContract = true;
-
     // Get tokens held by the account
     const tokensUrl = `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}/tokens`;
     const tokensResponse = await throttledGet(tokensUrl);
     console.log(`Account ${accountId} tokens:`, tokensResponse.data);
     const tokens = tokensResponse.data?.tokens || [];
     
-    // Check if any token name starts with 'ssLP-'
-    const hasLPToken = tokens.some((token: any) => {
-      console.log(`Token for ${accountId}:`, token);
-      return token.symbol && token.symbol.startsWith('ssLP-');
+    // Get full token details for each token
+    const tokenDetails = await Promise.all(
+      tokens.map(async (token: any) => {
+        const details = await getTokenDetails(token.token_id);
+        console.log(`Token ${token.token_id} details:`, details);
+        return details;
+      })
+    );
+    
+    // Check if any token symbol starts with 'ssLP-'
+    const hasLPToken = tokenDetails.some((token: any) => {
+      return token?.symbol && token.symbol.startsWith('ssLP-');
     });
 
     console.log(`Account ${accountId} is LP:`, hasLPToken);
